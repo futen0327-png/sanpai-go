@@ -173,6 +173,11 @@ body {
   font-size: 12px;
   color: #888;
 }
+.card-phone {
+  font-size: 12px;
+  color: #bbb;
+  margin-top: 4px;
+}
 
 /* 電話ボタン */
 .call-btn {
@@ -190,6 +195,7 @@ body {
   border: none;
   letter-spacing: 0.04em;
   -webkit-tap-highlight-color: transparent;
+  cursor: pointer;
 }
 .call-btn:active {
   background: #c62828;
@@ -197,6 +203,26 @@ body {
 .call-btn svg {
   width: 22px;
   height: 22px;
+  flex-shrink: 0;
+}
+/* テストモード：無効状態 */
+.call-btn.disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  color: #888;
+}
+.call-btn.disabled:active {
+  background: #ccc;
+}
+
+/* フッター注意書き */
+.footer-note {
+  padding: 10px 14px;
+  font-size: 11px;
+  color: #aaa;
+  text-align: center;
+  background: #f9f9f9;
+  border-top: 1px solid #e0e0e0;
   flex-shrink: 0;
 }
 </style>
@@ -217,19 +243,29 @@ body {
 <div id="map"></div>
 
 <!-- 一覧 -->
-<div class="list-wrap">
+<div class="list-wrap" style="padding-bottom:0">
   <div class="list-label">📍 近い順で表示中</div>
   <div id="list"></div>
 </div>
 
+<!-- フッター注意書き -->
+<div class="footer-note">※本サイトは現在テスト中です。表示されている情報・電話機能は実際には利用できません。</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+// ────────────────────────────────────────
+// テストモードフラグ
+// 本番公開時は false に変更するだけで電話機能が有効になります
+const isTestMode = true;
+// ────────────────────────────────────────
+
 // 吹き出しを3秒後に消す
 setTimeout(() => {
   document.getElementById('bubble').classList.add('hidden');
 }, 3000);
 
 // ダミーデータ（距離昇順）
+// ※ phone フィールドに本番番号を入力してください（isTestMode=false 時に使用されます）
 const facilities = [
   {
     name: "大阪リサイクルセンター",
@@ -238,7 +274,7 @@ const facilities = [
     distance: 1.2,
     priceLevel: "cheap",
     items: "木くず・金属くず",
-    phone: "0666001111"
+    phone: "0000000000" // 本番番号をここに入力
   },
   {
     name: "なにわ産廃処理場",
@@ -247,7 +283,7 @@ const facilities = [
     distance: 2.8,
     priceLevel: "normal",
     items: "混合廃棄物・がれき",
-    phone: "0666002222"
+    phone: "0000000000" // 本番番号をここに入力
   },
   {
     name: "関西エコ処理センター",
@@ -256,7 +292,7 @@ const facilities = [
     distance: 3.5,
     priceLevel: "high",
     items: "廃プラ・廃油",
-    phone: "0666003333"
+    phone: "0000000000" // 本番番号をここに入力
   },
   {
     name: "堺クリーンプラント",
@@ -265,7 +301,7 @@ const facilities = [
     distance: 5.1,
     priceLevel: "cheap",
     items: "木くず・紙くず・混合",
-    phone: "0722001111"
+    phone: "0000000000" // 本番番号をここに入力
   },
   {
     name: "近畿環境サービス",
@@ -274,9 +310,14 @@ const facilities = [
     distance: 6.4,
     priceLevel: "normal",
     items: "がれき・廃プラ・金属",
-    phone: "0666004444"
+    phone: "0000000000" // 本番番号をここに入力
   }
 ];
+
+// 表示用電話番号（isTestMode=true の場合はダミー表示）
+function getPhoneDisplay(phone) {
+  return isTestMode ? '000-0000-0000（テスト中）' : phone;
+}
 
 const priceMap = {
   cheap:  { label: "🟢 安い可能性あり", cls: "price-cheap"  },
@@ -327,13 +368,14 @@ facilities.forEach((f, i) => {
         <span class="price-badge ${price.cls}">${price.label}</span>
       </div>
       <div class="card-items">受入品目：${f.items}</div>
+      <div class="card-phone">📞 ${getPhoneDisplay(f.phone)}</div>
     </div>
-    <a class="call-btn" href="tel:${f.phone}" onclick="event.stopPropagation()">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
+    <button class="call-btn${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${isTestMode ? '#aaa' : 'white'}">
         <path d="M6.6 10.8c1.5 3 3.6 5.1 6.6 6.6l2.2-2.2c.3-.3.8-.4 1.2-.2 1.3.5 2.7.8 4.2.8.7 0 1.2.5 1.2 1.2V21c0 .7-.5 1.2-1.2 1.2C10.3 22.2 1.8 13.7 1.8 3.2 1.8 2.5 2.3 2 3 2h3.4c.7 0 1.2.5 1.2 1.2 0 1.5.3 2.9.8 4.2.1.4 0 .9-.2 1.2l-2.2 2.2z"/>
       </svg>
-      今すぐ電話
-    </a>
+      今すぐ電話${isTestMode ? '（テスト中）' : ''}
+    </button>
   `;
 
   // カードタップで地図移動
@@ -343,6 +385,23 @@ facilities.forEach((f, i) => {
   });
 
   listEl.appendChild(card);
+});
+
+// 電話ボタンのクリック処理
+document.querySelectorAll('.call-btn').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+
+    if (isTestMode) {
+      e.preventDefault();
+      alert('現在テスト中のため電話は利用できません');
+      return;
+    }
+
+    const phone = this.dataset.phone;
+    if (phone) {
+      window.location.href = 'tel:' + phone;
+    }
+  });
 });
 </script>
 </body>
