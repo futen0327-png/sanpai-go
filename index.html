@@ -395,27 +395,38 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 const listEl = document.getElementById('list');
 
-// マーカーを全件生成（常時地図に存在・表示切替で制御）
-const markers = facilities.map((f, i) => {
-  const icon = L.divIcon({
-    className: '',
-    html: `<div style="
-      width:28px;height:28px;background:#e53935;color:white;
-      border-radius:50%;display:flex;align-items:center;justify-content:center;
-      font-weight:bold;font-size:14px;border:2px solid white;
-      box-shadow:0 2px 5px rgba(0,0,0,0.35);">${i + 1}</div>`,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-    popupAnchor: [0, -16]
-  });
-  return L.marker([f.lat, f.lng], { icon })
-    .addTo(map)
-    .bindPopup(`<b>${f.name}</b><br>${f.distance}km`);
-});
+// 現在地ピン
+let userMarker = null;
+
+function setUserLocation(lat, lng) {
+  if (userMarker) map.removeLayer(userMarker);
+  userMarker = L.circleMarker([lat, lng], {
+    radius: 8,
+    color: '#1976d2',
+    fillColor: '#2196f3',
+    fillOpacity: 1
+  }).addTo(map).bindPopup('現在地');
+  map.setView([lat, lng], 12);
+}
+
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(
+    (pos) => setUserLocation(pos.coords.latitude, pos.coords.longitude),
+    () => {},
+    { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+  );
+}
+
+// アクティブマーカー管理
+let activeMarkers = [];
 
 // カード＋マーカー描画
 function renderList(data) {
   listEl.innerHTML = '';
+
+  // 既存マーカー削除
+  activeMarkers.forEach(m => map.removeLayer(m));
+  activeMarkers = [];
 
   // 0件表示
   if (data.length === 0) {
@@ -424,24 +435,17 @@ function renderList(data) {
         該当する処分場が見つかりません
       </div>
     `;
-    markers.forEach(m => { if (map.hasLayer(m)) map.removeLayer(m); });
     return;
   }
-
-  // マーカー表示切替（name基準で照合）
-  const dataNames = new Set(data.map(d => d.name));
-  facilities.forEach((f, i) => {
-    if (dataNames.has(f.name)) {
-      if (!map.hasLayer(markers[i])) markers[i].addTo(map);
-    } else {
-      if (map.hasLayer(markers[i])) markers[i].remove();
-    }
-  });
 
   data.forEach((f, i) => {
     const num = i + 1;
     const price = priceMap[f.priceLevel];
-    const markerIdx = facilities.findIndex(orig => orig.name === f.name);
+
+    // マーカー生成
+    const marker = L.marker([f.lat, f.lng]).addTo(map)
+      .bindPopup(`<b>${f.name}</b><br>${f.distance}km`);
+    activeMarkers.push(marker);
 
     const card = document.createElement('div');
     card.className = 'card';
@@ -467,7 +471,7 @@ function renderList(data) {
 
     card.addEventListener('click', () => {
       map.setView([f.lat, f.lng], 15);
-      markers[markerIdx].openPopup();
+      marker.openPopup();
     });
 
     listEl.appendChild(card);
@@ -485,6 +489,10 @@ function renderList(data) {
       if (phone) window.location.href = 'tel:' + phone;
     });
   });
+
+  // fitBounds で自動ズーム
+  const bounds = L.latLngBounds(data.map(f => [f.lat, f.lng]));
+  map.fitBounds(bounds, { padding: [40, 40] });
 }
 
 // 複合フィルター
