@@ -227,6 +227,38 @@ body {
   box-sizing: border-box;
 }
 
+/* クリアボタン */
+.input-wrap {
+  position: relative;
+  width: 100%;
+}
+
+#clearBtn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: #ccc;
+  color: #fff;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: none;
+  padding: 0;
+}
+
+#clearBtn:active {
+  background: #999;
+}
+
+.input-wrap input {
+  padding-right: 34px;
+}
+
 /* フッター注意書き */
 .footer-note {
   padding: 10px 14px;
@@ -247,7 +279,10 @@ body {
     <img class="logo" src="./images/logo-pc.png" alt="さんぱいGO">
     <div class="search-area">
       <div class="search-box">
-        <input type="text" id="searchInput" placeholder="🔍 フリーワード（地域・施設名等）">
+        <div class="input-wrap">
+          <input type="text" id="searchInput" placeholder="🔍 フリーワード（地域・施設名等）">
+          <button id="clearBtn">×</button>
+        </div>
         <select id="categorySelect">
           <option value="">▼ 品目を選ぶ</option>
           <option value="コンクリートがら">コンクリートがら</option>
@@ -483,8 +518,23 @@ function applyFilters() {
   renderList(filtered);
 }
 
-document.getElementById('searchInput').addEventListener('input', applyFilters);
-document.getElementById('categorySelect').addEventListener('change', applyFilters);
+const searchInput = document.getElementById('searchInput');
+const clearBtn = document.getElementById('clearBtn');
+const categorySelect = document.getElementById('categorySelect');
+
+searchInput.addEventListener('input', () => {
+  clearBtn.style.display = searchInput.value ? 'block' : 'none';
+  applyFilters();
+});
+
+clearBtn.addEventListener('click', () => {
+  searchInput.value = '';
+  categorySelect.value = '';
+  clearBtn.style.display = 'none';
+  applyFilters();
+});
+
+categorySelect.addEventListener('change', applyFilters);
 
 // 初期表示
 renderList(facilities);
