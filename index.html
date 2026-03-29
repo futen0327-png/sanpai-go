@@ -145,11 +145,11 @@ body {
   justify-content: center;
   gap: 10px;
   width: 100%;
-  min-height: 62px;
+  min-height: 70px;
   background: #e53935;
   color: white;
   text-decoration: none;
-  font-size: 18px;
+  font-size: 19px;
   font-weight: bold;
   border: none;
   letter-spacing: 0.04em;
@@ -172,6 +172,21 @@ body {
 }
 .call-btn.disabled:active {
   background: #ccc;
+}
+
+/* サブテキスト・1位メッセージ */
+.call-note {
+  font-size: 11px;
+  color: #666;
+  margin-top: 6px;
+  text-align: center;
+}
+
+.top-reason {
+  font-size: 12px;
+  color: #d32f2f;
+  font-weight: bold;
+  margin-top: 6px;
 }
 
 /* スマホ：ロゴ画像切替・サイズ調整 */
@@ -501,12 +516,14 @@ function renderList(data) {
         </div>
         <div class="card-items">受入品目：${f.items}</div>
         <div class="card-phone">📞 ${getPhoneDisplay(f.phone)}</div>
+        ${isTop ? '<div class="top-reason">最短距離でおすすめ</div>' : ''}
+        <div class="call-note">※空き状況・料金は電話で即確認できます</div>
       </div>
       <button class="call-btn${isTop ? ' top-call' : ''}${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${isTestMode ? '#aaa' : 'white'}">
           <path d="M6.6 10.8c1.5 3 3.6 5.1 6.6 6.6l2.2-2.2c.3-.3.8-.4 1.2-.2 1.3.5 2.7.8 4.2.8.7 0 1.2.5 1.2 1.2V21c0 .7-.5 1.2-1.2 1.2C10.3 22.2 1.8 13.7 1.8 3.2 1.8 2.5 2.3 2 3 2h3.4c.7 0 1.2.5 1.2 1.2 0 1.5.3 2.9.8 4.2.1.4 0 .9-.2 1.2l-2.2 2.2z"/>
         </svg>
-        今すぐ電話${isTestMode ? '（テスト中）' : ''}
+        空き確認・今すぐ電話${isTestMode ? '（テスト中）' : ''}
       </button>
     `;
 
