@@ -174,10 +174,17 @@ body {
   background: #ccc;
 }
 
-/* スマホ：ロゴ画像切替 */
+/* スマホ：ロゴ画像切替・サイズ調整 */
 @media (max-width: 767px) {
   .logo {
     content: url('./images/logo-sp.png');
+    height: 44px;
+    flex-shrink: 0;
+  }
+
+  .search-area {
+    flex: 0 1 58%;
+    min-width: 0;
   }
 
   .search-box select {
