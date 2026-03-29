@@ -311,6 +311,119 @@ body {
     height: 40vh;
   }
 }
+
+/* ホーム追加案内ポップアップ */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.active {
+  display: flex;
+}
+.modal-box {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px 20px 20px;
+  width: min(340px, 90vw);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  text-align: center;
+}
+.modal-title {
+  font-size: 17px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #222;
+}
+.modal-body {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.modal-how-body {
+  font-size: 14px;
+  color: #444;
+  line-height: 1.8;
+  margin-bottom: 20px;
+  text-align: left;
+}
+.modal-how-body strong {
+  color: #1c6ea8;
+}
+.modal-btn-primary {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background: #1c6ea8;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+.modal-btn-primary:active {
+  background: #155a8a;
+}
+.modal-btn-close {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  background: none;
+  color: #888;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.modal-btn-close:active {
+  background: #f5f5f5;
+}
+
+/* アンケートポップアップ */
+.survey-btn-success {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: #2e7d32;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+.survey-btn-success:active {
+  background: #1b5e20;
+}
+.survey-btn-fail {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background: #c62828;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.survey-btn-fail:active {
+  background: #7f0000;
+}
+.survey-result {
+  font-size: 15px;
+  color: #333;
+  padding: 10px 0 4px;
+  font-weight: bold;
+}
 </style>
 </head>
 <body>
@@ -352,6 +465,42 @@ body {
 
 <!-- フッター注意書き -->
 <div class="footer-note">※本サイトは現在テスト中です。表示されている情報・電話機能は実際には利用できません。</div>
+
+<!-- アンケートポップアップ -->
+<div class="modal-overlay" id="surveyPopup">
+  <div class="modal-box">
+    <div class="modal-title" id="surveyTitle">電話できましたか？</div>
+    <div id="surveyButtons">
+      <button class="survey-btn-success" id="surveySuccess">つながった 👍</button>
+      <button class="survey-btn-fail" id="surveyFail">つながらなかった 👎</button>
+    </div>
+    <div class="survey-result" id="surveyResult" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- ホーム追加案内ポップアップ -->
+<div class="modal-overlay" id="homePopup">
+  <div class="modal-box">
+    <div class="modal-title">次回すぐ使えます</div>
+    <div class="modal-body">このサイトをホームに追加すると、<br>次から一発で開けます</div>
+    <button class="modal-btn-primary" id="showHowBtn">ホームに追加方法を見る</button>
+    <button class="modal-btn-close" id="closeHomePopup">閉じる</button>
+  </div>
+</div>
+
+<!-- ホームに追加方法ポップアップ -->
+<div class="modal-overlay" id="howToPopup">
+  <div class="modal-box">
+    <div class="modal-title">ホームへの追加方法</div>
+    <div class="modal-how-body">
+      <strong>iPhone の場合</strong><br>
+      共有ボタン（四角から矢印）→「ホーム画面に追加」<br><br>
+      <strong>Android の場合</strong><br>
+      メニュー（縦3点）→「ホーム画面に追加」
+    </div>
+    <button class="modal-btn-close" id="closeHowToPopup">閉じる</button>
+  </div>
+</div>
 
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -541,10 +690,26 @@ function renderList(data) {
       if (isTestMode) {
         e.preventDefault();
         alert('現在テスト中のため電話は利用できません');
-        return;
+      } else {
+        const phone = this.dataset.phone;
+        if (phone) window.location.href = 'tel:' + phone;
       }
-      const phone = this.dataset.phone;
-      if (phone) window.location.href = 'tel:' + phone;
+      // 初回のみホーム追加案内を表示
+      if (!localStorage.getItem('homePopupShown')) {
+        localStorage.setItem('homePopupShown', '1');
+        document.getElementById('homePopup').classList.add('active');
+      }
+      // 初回のみアンケートを5秒後に表示
+      if (!localStorage.getItem('sanpai_feedback')) {
+        setTimeout(() => {
+          // ホーム追加ポップアップが表示中でも重ねて出す
+          const el = document.getElementById('surveyPopup');
+          el.classList.add('active');
+          document.getElementById('surveyTitle').textContent = '電話できましたか？';
+          document.getElementById('surveyButtons').style.display = '';
+          document.getElementById('surveyResult').style.display = 'none';
+        }, 5000);
+      }
     });
   });
 
@@ -601,6 +766,51 @@ clearBtn.addEventListener('click', () => {
 });
 
 categorySelect.addEventListener('change', applyFilters);
+
+// アンケートポップアップ制御
+function closeSurveyAfterDelay() {
+  setTimeout(() => {
+    document.getElementById('surveyPopup').classList.remove('active');
+  }, 1800);
+}
+document.getElementById('surveySuccess').addEventListener('click', () => {
+  localStorage.setItem('sanpai_feedback', 'success');
+  document.getElementById('surveyButtons').style.display = 'none';
+  const result = document.getElementById('surveyResult');
+  result.textContent = 'ご利用ありがとうございます';
+  result.style.display = '';
+  closeSurveyAfterDelay();
+});
+document.getElementById('surveyFail').addEventListener('click', () => {
+  localStorage.setItem('sanpai_feedback', 'fail');
+  document.getElementById('surveyButtons').style.display = 'none';
+  const result = document.getElementById('surveyResult');
+  result.textContent = '他の施設も確認できます';
+  result.style.display = '';
+  closeSurveyAfterDelay();
+});
+document.getElementById('surveyPopup').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('active');
+});
+
+// ホーム追加案内ポップアップ制御
+document.getElementById('closeHomePopup').addEventListener('click', () => {
+  document.getElementById('homePopup').classList.remove('active');
+});
+document.getElementById('showHowBtn').addEventListener('click', () => {
+  document.getElementById('homePopup').classList.remove('active');
+  document.getElementById('howToPopup').classList.add('active');
+});
+document.getElementById('closeHowToPopup').addEventListener('click', () => {
+  document.getElementById('howToPopup').classList.remove('active');
+});
+// オーバーレイ外タップで閉じる
+document.getElementById('homePopup').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('active');
+});
+document.getElementById('howToPopup').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('active');
+});
 
 // 初期表示
 renderList(facilities);
