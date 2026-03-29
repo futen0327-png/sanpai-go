@@ -176,41 +176,55 @@ body {
 /* スマホ：ロゴ縮小 */
 @media (max-width: 767px) {
   .logo-banner {
-    height: 19.5vh;
-    align-items: flex-start;
-    padding-top: 0;
+    height: auto;
+    padding: 7px 8px 7px 0;
+    align-items: center;
   }
 
   .logo-banner img {
-    height: 8.25vh;
-    max-height: 63px;
-    min-height: 36px;
-    width: auto;
+    width: 68px;
+    height: auto;
+    max-height: 52px;
+    min-height: unset;
     flex-shrink: 0;
-    margin: 0;
-    align-self: flex-start;
-    max-width: 60%;
     object-fit: contain;
-    object-position: left top;
   }
 
   .search-box {
-    margin-left: 10px;
     flex: 1;
-    max-width: calc(40% - 20px);
-    align-self: flex-end;
-    padding-bottom: 6px;
+    margin-left: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding-bottom: 0;
   }
 
   .search-box input {
     width: 100%;
-    max-width: none;
-    height: 34px;
-    border-radius: 17px;
+    height: 28px;
+    border-radius: 14px;
     border: none;
     padding: 0 12px;
-    font-size: 13px;
+    font-size: 12px;
     outline: none;
+    max-width: none;
+  }
+
+  .search-box select {
+    width: 100%;
+    height: 28px;
+    border-radius: 14px;
+    border: none;
+    padding: 0 10px;
+    font-size: 12px;
+    outline: none;
+    background: white;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23999' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    cursor: pointer;
   }
 }
 
@@ -250,7 +264,18 @@ body {
 <div class="logo-banner">
   <img src="./images/logo.png" alt="さんぱいGO">
   <div class="search-box">
-    <input type="text" id="searchInput" placeholder="例）大阪 木くず">
+    <input type="text" id="searchInput" placeholder="🔍 フリーワード（エリア・施設名など）">
+    <select id="categorySelect">
+      <option value="">▼ 品目を選ぶ</option>
+      <option value="コンクリートがら">コンクリートがら</option>
+      <option value="アスファルトがら">アスファルトがら</option>
+      <option value="石">石</option>
+      <option value="木">木</option>
+      <option value="紙">紙</option>
+      <option value="瓦">瓦</option>
+      <option value="がれき">がれき</option>
+      <option value="その他">その他</option>
+    </select>
   </div>
 </div>
 
@@ -442,29 +467,39 @@ function renderList(data) {
   });
 }
 
-// 検索
-document.getElementById('searchInput').addEventListener('input', function() {
-  const keyword = this.value.trim().toLowerCase();
+// 複合フィルター
+function applyFilters() {
+  const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+  const category = document.getElementById('categorySelect').value;
   const words = keyword ? keyword.split(/\s+/) : [];
 
-  const filtered = words.length === 0
-    ? facilities
-    : facilities
-        .map(f => {
-          let score = 0;
-          words.forEach(w => {
-            if (f.region.toLowerCase().includes(w)) score += 3;
-            if (f.items.toLowerCase().includes(w))  score += 2;
-            if (f.name.toLowerCase().includes(w))   score += 1;
-          });
-          return { ...f, score };
-        })
-        .filter(f => f.score > 0)
-        .sort((a, b) => b.score - a.score)
-        .map(({ score, ...f }) => f); // score を除去してから渡す
+  let filtered = facilities;
+
+  if (words.length > 0) {
+    filtered = filtered
+      .map(f => {
+        let score = 0;
+        words.forEach(w => {
+          if (f.region.toLowerCase().includes(w)) score += 3;
+          if (f.items.toLowerCase().includes(w))  score += 2;
+          if (f.name.toLowerCase().includes(w))   score += 1;
+        });
+        return { ...f, score };
+      })
+      .filter(f => f.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map(({ score, ...f }) => f);
+  }
+
+  if (category) {
+    filtered = filtered.filter(f => f.items.includes(category));
+  }
 
   renderList(filtered);
-});
+}
+
+document.getElementById('searchInput').addEventListener('input', applyFilters);
+document.getElementById('categorySelect').addEventListener('change', applyFilters);
 
 // 初期表示
 renderList(facilities);
