@@ -261,7 +261,8 @@ body {
 
 /* 1位カード強調 */
 .top-card {
-  border: 2px solid #FFD700;
+  background: #FFF9C4;
+  border: 1px solid #E6C200;
   box-shadow: 0 3px 10px rgba(0,0,0,0.12);
 }
 
@@ -468,11 +469,11 @@ function renderList(data) {
       className: '',
       html: `<div style="
         width:28px;height:28px;
-        background:${isTop ? '#f8a5c2' : '#e53935'};
-        color:white;border-radius:50%;
-        display:flex;align-items:center;justify-content:center;
+        background:${isTop ? '#FFD700' : '#e53935'};
+        color:${isTop ? '#333' : 'white'};
+        border-radius:50%;display:flex;align-items:center;justify-content:center;
         font-weight:bold;font-size:14px;
-        border:2px solid ${isTop ? '#d81b60' : 'white'};
+        border:2px solid ${isTop ? '#C9A200' : 'white'};
         box-shadow:${isTop ? '0 3px 8px rgba(0,0,0,0.45)' : '0 2px 5px rgba(0,0,0,0.35)'};">${num}</div>`,
       iconSize: [28, 28],
       iconAnchor: [14, 14]
