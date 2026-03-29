@@ -442,8 +442,18 @@ function renderList(data) {
     const num = i + 1;
     const price = priceMap[f.priceLevel];
 
-    // マーカー生成
-    const marker = L.marker([f.lat, f.lng]).addTo(map)
+    // マーカー生成（番号付き）
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="
+        width:28px;height:28px;background:#e53935;color:white;
+        border-radius:50%;display:flex;align-items:center;justify-content:center;
+        font-weight:bold;font-size:14px;border:2px solid white;
+        box-shadow:0 2px 5px rgba(0,0,0,0.35);">${num}</div>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
+    });
+    const marker = L.marker([f.lat, f.lng], { icon }).addTo(map)
       .bindPopup(`<b>${f.name}</b><br>${f.distance}km`);
     activeMarkers.push(marker);
 
