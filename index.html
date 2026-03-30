@@ -4,9 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>さんぱいGO</title>
+<!-- Android / Chrome -->
 <link rel="icon" href="/icon-192.png">
+<!-- iPhone対応 -->
 <link rel="apple-touch-icon" href="/icon-192.png">
-<link rel="manifest" href="/manifest.json">
+<!-- 高解像度対応 -->
+<link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 * {
@@ -535,6 +541,29 @@ body {
 <!-- フッター注意書き -->
 <div class="footer-note">※本サイトは現在テスト中です。表示されている情報・電話機能は実際には利用できません。</div>
 
+<!-- ホーム追加固定ボタン -->
+<div id="addHomeBar" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9000;background:#1c6ea8;padding:10px 16px;text-align:center;">
+  <button id="addHomeBtn" style="background:none;border:none;color:white;font-size:14px;font-weight:bold;cursor:pointer;width:100%;">
+    📱 ホームに追加で次回すぐ開けます
+  </button>
+  <button id="addHomeClose" style="position:absolute;top:50%;right:14px;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.6);font-size:20px;cursor:pointer;line-height:1;">×</button>
+</div>
+
+<!-- ホーム追加説明ポップアップ -->
+<div class="modal-overlay" id="addHomePopup">
+  <div class="modal-box">
+    <div class="modal-title">📱 ホーム画面に追加する方法</div>
+    <div class="modal-how-body">
+      このサイトはホーム画面に追加できます<br><br>
+      <strong>【手順】</strong><br>
+      ① 右上「︙」をタップ<br>
+      ②「ホーム画面に追加」を選択<br><br>
+      これで次回から1タップで開けます
+    </div>
+    <button class="modal-btn-close" id="closeAddHomePopup">閉じる</button>
+  </div>
+</div>
+
 <!-- トースト通知 -->
 <div class="toast" id="toast"></div>
 
@@ -550,29 +579,6 @@ body {
   </div>
 </div>
 
-<!-- ホーム追加案内ポップアップ -->
-<div class="modal-overlay" id="homePopup">
-  <div class="modal-box">
-    <div class="modal-title">次回すぐ使えます</div>
-    <div class="modal-body">このサイトをホームに追加すると、<br>次から一発で開けます</div>
-    <button class="modal-btn-primary" id="showHowBtn">ホームに追加方法を見る</button>
-    <button class="modal-btn-close" id="closeHomePopup">閉じる</button>
-  </div>
-</div>
-
-<!-- ホームに追加方法ポップアップ -->
-<div class="modal-overlay" id="howToPopup">
-  <div class="modal-box">
-    <div class="modal-title">ホームへの追加方法</div>
-    <div class="modal-how-body">
-      <strong>iPhone の場合</strong><br>
-      共有ボタン（四角から矢印）→「ホーム画面に追加」<br><br>
-      <strong>Android の場合</strong><br>
-      メニュー（縦3点）→「ホーム画面に追加」
-    </div>
-    <button class="modal-btn-close" id="closeHowToPopup">閉じる</button>
-  </div>
-</div>
 
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -580,6 +586,7 @@ body {
 // ────────────────────────────────────────
 // LINE起動
 function sendToLine(name, distance, items, lat, lng) {
+  promptAddHome();
   const mapUrl = 'https://maps.google.com/?q=' + lat + ',' + lng;
   const siteUrl = 'https://sanpai-go.com';
   const msg =
@@ -798,11 +805,7 @@ function renderList(data) {
         const phone = this.dataset.phone;
         if (phone) window.location.href = 'tel:' + phone;
       }
-      // 初回のみホーム追加案内を表示
-      if (!localStorage.getItem('homePopupShown')) {
-        localStorage.setItem('homePopupShown', '1');
-        document.getElementById('homePopup').classList.add('active');
-      }
+      promptAddHome();
       // 初回のみアンケートを5秒後に表示
       if (!localStorage.getItem('sanpai_feedback')) {
         setTimeout(() => {
@@ -898,31 +901,42 @@ document.getElementById('surveyPopup').addEventListener('click', function(e) {
   if (e.target === this) this.classList.remove('active');
 });
 
-// ホーム追加案内ポップアップ制御
-document.getElementById('closeHomePopup').addEventListener('click', () => {
-  document.getElementById('homePopup').classList.remove('active');
-});
-document.getElementById('showHowBtn').addEventListener('click', () => {
-  document.getElementById('homePopup').classList.remove('active');
-  document.getElementById('howToPopup').classList.add('active');
-});
-document.getElementById('closeHowToPopup').addEventListener('click', () => {
-  document.getElementById('howToPopup').classList.remove('active');
-});
-// オーバーレイ外タップで閉じる
-document.getElementById('homePopup').addEventListener('click', function(e) {
-  if (e.target === this) this.classList.remove('active');
-});
-document.getElementById('howToPopup').addEventListener('click', function(e) {
-  if (e.target === this) this.classList.remove('active');
-});
 
 // 初期表示
 renderList(facilities);
 
-// Service Worker 登録
+// 既存 Service Worker を全解除（過去キャッシュ対策）
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./service-worker.js');
+  navigator.serviceWorker.getRegistrations().then(function(registrations) {
+    for (let r of registrations) r.unregister();
+  });
+}
+
+// ホーム追加バー制御
+(function() {
+  if (localStorage.getItem('addHomeBarClosed')) return;
+  const bar = document.getElementById('addHomeBar');
+  bar.style.display = 'block';
+
+  document.getElementById('addHomeBtn').addEventListener('click', () => {
+    document.getElementById('addHomePopup').classList.add('active');
+  });
+  document.getElementById('addHomeClose').addEventListener('click', () => {
+    bar.style.display = 'none';
+    localStorage.setItem('addHomeBarClosed', '1');
+  });
+  document.getElementById('closeAddHomePopup').addEventListener('click', () => {
+    document.getElementById('addHomePopup').classList.remove('active');
+  });
+  document.getElementById('addHomePopup').addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('active');
+  });
+})();
+
+// 電話・LINE後にホーム追加案内を表示する関数
+function promptAddHome() {
+  if (localStorage.getItem('addHomeBarClosed')) return;
+  document.getElementById('addHomeBar').style.display = 'block';
 }
 </script>
 </body>
