@@ -330,8 +330,8 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 .line-btn img {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
 }
 .line-text {
   font-size: 13px;
@@ -578,29 +578,15 @@ body {
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // ────────────────────────────────────────
-// LINEコピー（カードのonclickから直接呼ぶ）
-function copyLineMsg(name, distance, items) {
-  const msg = 'これでいいですか？\n\n' +
+// LINE起動
+function sendToLine(name, distance, items) {
+  const msg =
+    'これでいいですか？\n\n' +
     name + '\n' +
     '距離：' + distance + 'km\n' +
-    '受入：' + items + '\n\n' +
-    '※よく使われている処分場です';
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(msg).then(() => showToast('コピーしました ✓'))
-      .catch(() => fallbackCopy(msg));
-  } else {
-    fallbackCopy(msg);
-  }
-}
-function fallbackCopy(text) {
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
-  document.body.appendChild(ta);
-  ta.focus(); ta.select();
-  try { document.execCommand('copy'); showToast('コピーしました ✓'); }
-  catch { showToast('コピーできませんでした'); }
-  document.body.removeChild(ta);
+    '受入：' + items;
+  const url = 'https://line.me/R/msg/text/?' + encodeURIComponent(msg);
+  window.open(url, '_blank');
 }
 
 // トースト表示
@@ -783,7 +769,7 @@ function renderList(data) {
           </svg>
           空き確認・今すぐ電話${isTestMode ? '（テスト中）' : ''}
         </button>
-        <button class="line-btn" onclick="event.stopPropagation();copyLineMsg('${f.name.replace(/'/g,"\\'")}','${f.distance}','${f.items.replace(/'/g,"\\'")}')">
+        <button class="line-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\\'")}','${f.distance}','${f.items.replace(/'/g,"\\'")}')">
           <img src="images/oyakata.png">
           <div class="line-text">ココで<br>いい？</div>
         </button>
