@@ -317,7 +317,6 @@ body {
   color: white;
   border: none;
   border-radius: 10px;
-  font-weight: bold;
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -325,14 +324,14 @@ body {
   justify-content: center;
   gap: 4px;
   padding: 6px;
-  min-width: 90px;
-  height: 80px;
-  flex-shrink: 0;
+  width: 90px;
+  height: 85px;
+  font-weight: bold;
   -webkit-tap-highlight-color: transparent;
 }
 .line-btn img {
-  width: 36px;
-  height: 36px;
+  width: 48px;
+  height: 48px;
 }
 .line-text {
   font-size: 13px;
@@ -785,8 +784,8 @@ function renderList(data) {
           空き確認・今すぐ電話${isTestMode ? '（テスト中）' : ''}
         </button>
         <button class="line-btn" onclick="event.stopPropagation();copyLineMsg('${f.name.replace(/'/g,"\\'")}','${f.distance}','${f.items.replace(/'/g,"\\'")}')">
-          <img src="images/oyakata.png" style="border-radius:4px;" onerror="this.style.display='none'">
-          <span class="line-text">LINEで確認</span>
+          <img src="images/oyakata.png">
+          <div class="line-text">ココで<br>いい？</div>
         </button>
       </div>
     `;
