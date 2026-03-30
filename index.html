@@ -317,25 +317,27 @@ body {
   color: white;
   border: none;
   border-radius: 10px;
-  font-size: 16px;
   font-weight: bold;
-  padding: 0 14px;
   cursor: pointer;
-  white-space: nowrap;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  min-height: 38px;
-  overflow: visible;
+  gap: 4px;
+  padding: 6px;
+  min-width: 90px;
+  height: 80px;
   flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
 }
 .line-btn img {
-  width: 78px;
-  height: 78px;
-  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+.line-text {
+  font-size: 13px;
+  line-height: 1.1;
+  text-align: center;
 }
 .line-btn:active {
   background: #05a847;
@@ -784,7 +786,7 @@ function renderList(data) {
         </button>
         <button class="line-btn" onclick="event.stopPropagation();copyLineMsg('${f.name.replace(/'/g,"\\'")}','${f.distance}','${f.items.replace(/'/g,"\\'")}')">
           <img src="images/oyakata.png" style="border-radius:4px;" onerror="this.style.display='none'">
-          LINEで確認
+          <span class="line-text">LINEで確認</span>
         </button>
       </div>
     `;
