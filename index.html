@@ -312,26 +312,23 @@ body {
   min-height: 64px;
   font-size: 17px;
 }
-.line-btns {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex-shrink: 0;
-}
 .line-btn {
   background: #06C755;
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 12px;
+  border-radius: 10px;
+  font-size: 13px;
   font-weight: bold;
-  padding: 0 12px;
-  height: 29px;
+  padding: 0 14px;
+  min-height: 64px;
   cursor: pointer;
   white-space: nowrap;
   display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 4px;
+  flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
 }
 .line-btn:active {
@@ -574,15 +571,29 @@ body {
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // ────────────────────────────────────────
-// LINE確認メッセージ生成
-function createLineMessage(facility, phrase) {
-  const url = window.location.href.split('?')[0];
-  return phrase + '\n\n' +
-    facility.name + '\n' +
-    '距離：' + facility.distance + 'km\n' +
-    '受入：' + facility.items + '\n\n' +
-    '▼詳細\n' + url + '\n\n' +
+// LINEコピー（カードのonclickから直接呼ぶ）
+function copyLineMsg(name, distance, items) {
+  const msg = 'これでいいですか？\n\n' +
+    name + '\n' +
+    '距離：' + distance + 'km\n' +
+    '受入：' + items + '\n\n' +
     '※よく使われている処分場です';
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(msg).then(() => showToast('コピーしました ✓'))
+      .catch(() => fallbackCopy(msg));
+  } else {
+    fallbackCopy(msg);
+  }
+}
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try { document.execCommand('copy'); showToast('コピーしました ✓'); }
+  catch { showToast('コピーできませんでした'); }
+  document.body.removeChild(ta);
 }
 
 // トースト表示
@@ -765,14 +776,10 @@ function renderList(data) {
           </svg>
           空き確認・今すぐ電話${isTestMode ? '（テスト中）' : ''}
         </button>
-        <div class="line-btns">
-          <button class="line-btn" data-name="${f.name}" data-distance="${f.distance}" data-items="${f.items}" data-phrase="これでいいですか？" onclick="event.stopPropagation()">
-            💬 これでいい？
-          </button>
-          <button class="line-btn" data-name="${f.name}" data-distance="${f.distance}" data-items="${f.items}" data-phrase="ここで大丈夫ですか？" onclick="event.stopPropagation()">
-            💬 ここOK？
-          </button>
-        </div>
+        <button class="line-btn" onclick="event.stopPropagation();copyLineMsg('${f.name.replace(/'/g,"\\'")}','${f.distance}','${f.items.replace(/'/g,"\\'")}')">
+          <img src="images/oyakata.png" style="width:24px;height:24px;vertical-align:middle;border-radius:4px;" onerror="this.style.display='none'">
+          LINEで確認
+        </button>
       </div>
     `;
 
@@ -813,42 +820,6 @@ function renderList(data) {
     });
   });
 
-  // LINEボタンのイベント登録
-  listEl.querySelectorAll('.line-btn').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      const facility = {
-        name:     this.dataset.name,
-        distance: this.dataset.distance,
-        items:    this.dataset.items
-      };
-      const phrase = this.dataset.phrase;
-      const msg = createLineMessage(facility, phrase);
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(msg).then(() => {
-          showToast('コピーしました ✓');
-        }).catch(() => {
-          showToast('コピーできませんでした');
-        });
-      } else {
-        // フォールバック（一部ブラウザ）
-        const ta = document.createElement('textarea');
-        ta.value = msg;
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
-        try {
-          document.execCommand('copy');
-          showToast('コピーしました ✓');
-        } catch {
-          showToast('コピーできませんでした');
-        }
-        document.body.removeChild(ta);
-      }
-    });
-  });
 
   // fitBounds で自動ズーム
   const bounds = L.latLngBounds(data.map(f => [f.lat, f.lng]));
