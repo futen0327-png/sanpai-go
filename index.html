@@ -327,9 +327,14 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
   flex-shrink: 0;
   -webkit-tap-highlight-color: transparent;
+}
+.line-btn img {
+  width: 28px;
+  height: 28px;
+  margin-bottom: 4px;
 }
 .line-btn:active {
   background: #05a847;
@@ -777,7 +782,7 @@ function renderList(data) {
           空き確認・今すぐ電話${isTestMode ? '（テスト中）' : ''}
         </button>
         <button class="line-btn" onclick="event.stopPropagation();copyLineMsg('${f.name.replace(/'/g,"\\'")}','${f.distance}','${f.items.replace(/'/g,"\\'")}')">
-          <img src="images/oyakata.png" style="width:24px;height:24px;vertical-align:middle;border-radius:4px;" onerror="this.style.display='none'">
+          <img src="images/oyakata.png" style="border-radius:4px;" onerror="this.style.display='none'">
           LINEで確認
         </button>
       </div>
