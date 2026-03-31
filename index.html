@@ -356,35 +356,17 @@ body {
   min-height: 32px;
   font-size: 17px;
 }
-.line-btn {
-  background: #06C755;
-  color: white;
+.oyakata-btn {
   border: none;
-  border-radius: 10px;
+  background: none;
+  padding: 0;
   cursor: pointer;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 8px 10px;
-  width: 88px;
-  height: 85px;
   -webkit-tap-highlight-color: transparent;
 }
-.oyakata-icon {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-.oyakata-text {
-  font-size: 16px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.line-btn:active {
-  background: #05a847;
+.oyakata-img {
+  width: 100px;
+  height: auto;
+  display: block;
 }
 
 /* トースト通知 */
@@ -783,9 +765,8 @@ function renderCard(f, num, isFeatured) {
         </svg>
         ${callLabel}
       </button>
-      <button class="line-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\\'")}','${f.distance}','${f.items.replace(/'/g,"\\'")}','${f.lat}','${f.lng}')">
-        <img class="oyakata-icon" src="images/oyakata.png">
-        <div class="oyakata-text">親方相談</div>
+      <button class="oyakata-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\\'")}','${f.distance}','${f.items.replace(/'/g,"\\'")}','${f.lat}','${f.lng}')">
+        <img src="images/oyakata.png" class="oyakata-img">
       </button>
     </div>
   `;
