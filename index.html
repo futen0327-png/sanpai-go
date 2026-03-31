@@ -38,7 +38,7 @@ body {
   background: #1c6ea8;
   position: relative;
   z-index: 1000;
-  transition: transform 0.3s ease-out, margin-bottom 0.3s ease-out;
+  transition: transform 0.3s ease-out;
 }
 .hide-search {
   transform: translateY(-100%);
@@ -997,8 +997,6 @@ function promptAddHome() {
   let lock = false;
 
   function hideSearch() {
-    const h = searchArea.offsetHeight;
-    searchArea.style.marginBottom = `-${h}px`;
     searchArea.classList.add('hide-search');
     isSearchVisible = false;
     scrollDelta = 0;
@@ -1007,7 +1005,6 @@ function promptAddHome() {
   }
 
   function showSearch() {
-    searchArea.style.marginBottom = '';
     searchArea.classList.remove('hide-search');
     isSearchVisible = true;
     scrollDelta = 0;
@@ -1020,24 +1017,26 @@ function promptAddHome() {
 
     const st = cardArea.scrollTop;
     const diff = st - lastScrollTop;
-    lastScrollTop = st;
 
     // 微スクロール無視
-    if (Math.abs(diff) < 10) return;
-
-    if (diff > 0) {
-      // 下スクロール：デルタ加算
-      scrollDelta = scrollDelta > 0 ? scrollDelta + diff : diff;
-      if (scrollDelta >= 80 && st > 20 && isSearchVisible) {
-        hideSearch();
-      }
-    } else {
-      // 上スクロール：デルタ加算
-      scrollDelta = scrollDelta < 0 ? scrollDelta + diff : diff;
-      if (scrollDelta <= -40 && !isSearchVisible) {
-        showSearch();
-      }
+    if (Math.abs(diff) < 10) {
+      lastScrollTop = st;
+      return;
     }
+
+    scrollDelta += diff;
+
+    // 下スクロール → 非表示
+    if (scrollDelta > 80 && st > 20 && isSearchVisible) {
+      hideSearch();
+    }
+
+    // 上スクロール → 表示
+    if (scrollDelta < -40 && !isSearchVisible) {
+      showSearch();
+    }
+
+    lastScrollTop = st;
   });
 })();
 </script>
