@@ -363,25 +363,34 @@ body {
   border-radius: 10px;
   cursor: pointer;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
   gap: 8px;
-  padding: 8px;
+  padding: 8px 10px;
   width: 88px;
   height: 85px;
-  font-weight: bold;
   -webkit-tap-highlight-color: transparent;
 }
-.line-btn img {
-  width: 26px;
-  height: 26px;
+.oyakata-icon {
+  width: 30px;
+  height: auto;
+  flex-shrink: 0;
 }
-.line-text {
+.oyakata-text {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.line1 {
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.2;
-  text-align: center;
+  text-align: left;
+}
+.line2 {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: right;
 }
 .line-btn:active {
   background: #05a847;
@@ -784,8 +793,11 @@ function renderCard(f, num, isFeatured) {
         ${callLabel}
       </button>
       <button class="line-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\\'")}','${f.distance}','${f.items.replace(/'/g,"\\'")}','${f.lat}','${f.lng}')">
-        <img src="images/oyakata.png">
-        <div class="line-text">親方に相談</div>
+        <img class="oyakata-icon" src="images/oyakata.png">
+        <div class="oyakata-text">
+          <div class="line1">親方に</div>
+          <div class="line2">相談</div>
+        </div>
       </button>
     </div>
   `;
