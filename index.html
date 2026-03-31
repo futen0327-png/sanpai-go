@@ -356,6 +356,12 @@ body {
   min-height: 32px;
   font-size: 17px;
 }
+.oyakata-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
 .oyakata-btn {
   border: none;
   background: none;
@@ -368,6 +374,13 @@ body {
   height: auto;
   border-radius: 16px;
   display: block;
+}
+.oyakata-note {
+  font-size: 10px;
+  color: #999;
+  text-align: center;
+  line-height: 1.3;
+  white-space: nowrap;
 }
 
 /* トースト通知 */
@@ -606,20 +619,24 @@ body {
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // ────────────────────────────────────────
-// LINE起動
-function sendToLine(name, distance, items, lat, lng) {
+// LINE起動（親方相談）
+// ※ メッセージ文言を変更する場合はこの関数を編集してください
+function sendToLine(name, phone, items, lat, lng) {
   promptAddHome();
   const mapUrl = 'https://maps.google.com/?q=' + lat + ',' + lng;
   const siteUrl = 'https://sanpai-go.com';
+  const phoneText = phone ? phone : '未確認';
   const msg =
-    'これでいいですか？\n\n' +
-    '■' + name + '\n' +
-    '距離：' + distance + 'km\n' +
-    '受入：' + items + '\n\n' +
-    '▼場所（地図）\n' + mapUrl + '\n\n' +
-    '▼詳細\n' + siteUrl;
+    '【親方相談】\n' +
+    'この処分場で大丈夫ですか？\n\n' +
+    '施設名：' + name + '\n' +
+    '電話：' + phoneText + '\n' +
+    '品目：' + items + '\n' +
+    '場所：' + mapUrl + '\n\n' +
+    'さんぱいGO\n' +
+    siteUrl;
   const url = 'https://line.me/R/msg/text/?' + encodeURIComponent(msg);
-  window.open(url, '_blank');
+  window.location.href = url;
 }
 
 // トースト表示
@@ -766,9 +783,12 @@ function renderCard(f, num, isFeatured) {
         </svg>
         ${callLabel}
       </button>
-      <button class="oyakata-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\\'")}','${f.distance}','${f.items.replace(/'/g,"\\'")}','${f.lat}','${f.lng}')">
-        <img src="images/oyakata.png" class="oyakata-img">
-      </button>
+      <div class="oyakata-wrap">
+        <button class="oyakata-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\\'")}','${isTestMode ? '' : f.phone}','${f.items.replace(/'/g,"\\'")}','${f.lat}','${f.lng}')">
+          <img src="images/oyakata.png" class="oyakata-img">
+        </button>
+        <div class="oyakata-note">※LINEで確認してから送信</div>
+      </div>
     </div>
   `;
 }
