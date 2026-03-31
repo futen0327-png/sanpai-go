@@ -286,22 +286,53 @@ body {
 /* 1位カード強調 */
 .top-card {
   background: #FFF9C4;
-  border: 1px solid #E6C200;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+  border: 2px solid #E6C200;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.16);
+}
+.top-card .card-body {
+  padding: 16px 16px 10px;
+}
+.top-card .card-name {
+  font-size: 20px;
+  margin-bottom: 10px;
 }
 
 .top-badge {
-  margin-left: 6px;
+  margin-left: 8px;
   font-size: 10px;
-  padding: 2px 6px;
+  padding: 3px 8px;
   border-radius: 10px;
-  background: #ff6b6b;
+  background: #e53935;
   color: white;
   font-weight: bold;
+  white-space: nowrap;
+}
+
+/* 1位カード：ボタンエリア */
+.top-actions {
+  padding: 0 12px 14px;
+}
+.call-hint {
+  text-align: center;
+  font-size: 13px;
+  color: #e53935;
+  font-weight: bold;
+  margin-bottom: 8px;
 }
 
 .top-call {
-  background: linear-gradient(45deg, #e53935, #ff7043);
+  background: #e53935;
+  min-height: 62px;
+  font-size: 19px;
+  border-radius: 12px;
+  width: 100%;
+}
+.top-call:active {
+  background: #c62828;
+}
+.top-call svg {
+  width: 28px;
+  height: 28px;
 }
 
 /* カードアクションエリア（電話＋LINE横並び） */
@@ -759,33 +790,55 @@ function renderList(data) {
 
     const card = document.createElement('div');
     card.className = 'card' + (isTop ? ' top-card' : '');
-    card.innerHTML = `
-      <div class="card-body">
-        <div class="card-name">
-          <span class="card-num">${num}</span>${f.name}${isTop ? '<span class="top-badge">おすすめ</span>' : ''}
+    if (isTop) {
+      card.innerHTML = `
+        <div class="card-body">
+          <div class="card-name">
+            <span class="card-num">${num}</span>${f.name}<span class="top-badge">今すぐ行ける可能性高い</span>
+          </div>
+          <div class="card-meta">
+            <span class="card-distance">📍 ${f.distance}km</span>
+            <span class="price-badge ${price.cls}">${price.label}</span>
+          </div>
         </div>
-        <div class="card-meta">
-          <span class="card-distance">📍 ${f.distance}km</span>
-          <span class="price-badge ${price.cls}">${price.label}</span>
+        <div class="top-actions">
+          <div class="call-hint">空いてるかだけでもOK</div>
+          <button class="call-btn top-call${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${isTestMode ? '#aaa' : 'white'}">
+              <path d="M6.6 10.8c1.5 3 3.6 5.1 6.6 6.6l2.2-2.2c.3-.3.8-.4 1.2-.2 1.3.5 2.7.8 4.2.8.7 0 1.2.5 1.2 1.2V21c0 .7-.5 1.2-1.2 1.2C10.3 22.2 1.8 13.7 1.8 3.2 1.8 2.5 2.3 2 3 2h3.4c.7 0 1.2.5 1.2 1.2 0 1.5.3 2.9.8 4.2.1.4 0 .9-.2 1.2l-2.2 2.2z"/>
+            </svg>
+            今すぐ空き確認する（30秒）${isTestMode ? '（テスト中）' : ''}
+          </button>
         </div>
-        <div class="card-items">受入品目：${f.items}</div>
-        <div class="card-phone">📞 ${getPhoneDisplay(f.phone)}</div>
-        ${isTop ? '<div class="top-reason">最短距離でおすすめ</div>' : ''}
-        <div class="call-note">※空き状況・料金は電話で即確認できます</div>
-      </div>
-      <div class="card-actions">
-        <button class="call-btn${isTop ? ' top-call' : ''}${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${isTestMode ? '#aaa' : 'white'}">
-            <path d="M6.6 10.8c1.5 3 3.6 5.1 6.6 6.6l2.2-2.2c.3-.3.8-.4 1.2-.2 1.3.5 2.7.8 4.2.8.7 0 1.2.5 1.2 1.2V21c0 .7-.5 1.2-1.2 1.2C10.3 22.2 1.8 13.7 1.8 3.2 1.8 2.5 2.3 2 3 2h3.4c.7 0 1.2.5 1.2 1.2 0 1.5.3 2.9.8 4.2.1.4 0 .9-.2 1.2l-2.2 2.2z"/>
-          </svg>
-          空き確認・今すぐ電話${isTestMode ? '（テスト中）' : ''}
-        </button>
-        <button class="line-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\\'")}','${f.distance}','${f.items.replace(/'/g,"\\'")}','${f.lat}','${f.lng}')">
-          <img src="images/oyakata.png">
-          <div class="line-text">ココで<br>いい？</div>
-        </button>
-      </div>
-    `;
+      `;
+    } else {
+      card.innerHTML = `
+        <div class="card-body">
+          <div class="card-name">
+            <span class="card-num">${num}</span>${f.name}
+          </div>
+          <div class="card-meta">
+            <span class="card-distance">📍 ${f.distance}km</span>
+            <span class="price-badge ${price.cls}">${price.label}</span>
+          </div>
+          <div class="card-items">受入品目：${f.items}</div>
+          <div class="card-phone">📞 ${getPhoneDisplay(f.phone)}</div>
+          <div class="call-note">※空き状況・料金は電話で即確認できます</div>
+        </div>
+        <div class="card-actions">
+          <button class="call-btn${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${isTestMode ? '#aaa' : 'white'}">
+              <path d="M6.6 10.8c1.5 3 3.6 5.1 6.6 6.6l2.2-2.2c.3-.3.8-.4 1.2-.2 1.3.5 2.7.8 4.2.8.7 0 1.2.5 1.2 1.2V21c0 .7-.5 1.2-1.2 1.2C10.3 22.2 1.8 13.7 1.8 3.2 1.8 2.5 2.3 2 3 2h3.4c.7 0 1.2.5 1.2 1.2 0 1.5.3 2.9.8 4.2.1.4 0 .9-.2 1.2l-2.2 2.2z"/>
+            </svg>
+            空き確認・今すぐ電話${isTestMode ? '（テスト中）' : ''}
+          </button>
+          <button class="line-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\\'")}','${f.distance}','${f.items.replace(/'/g,"\\'")}','${f.lat}','${f.lng}')">
+            <img src="images/oyakata.png">
+            <div class="line-text">ココで<br>いい？</div>
+          </button>
+        </div>
+      `;
+    }
 
     card.addEventListener('click', () => {
       map.setView([f.lat, f.lng], 15);
