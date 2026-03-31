@@ -36,6 +36,12 @@ body {
   width: 100%;
   flex-shrink: 0;
   background: #1c6ea8;
+  position: relative;
+  z-index: 1000;
+  transition: transform 0.3s ease-out, margin-bottom 0.3s ease-out;
+}
+.hide-search {
+  transform: translateY(-100%);
 }
 
 .header-inner {
@@ -979,6 +985,61 @@ function promptAddHome() {
   if (localStorage.getItem('addHomeBarClosed')) return;
   document.getElementById('addHomeBar').style.display = 'block';
 }
+
+// 検索エリアのスクロール連動表示/非表示
+(function() {
+  const searchArea = document.querySelector('.logo-banner');
+  const cardArea = document.querySelector('.list-wrap');
+
+  let isSearchVisible = true;
+  let lastScrollTop = 0;
+  let scrollDelta = 0;
+  let lock = false;
+
+  function hideSearch() {
+    const h = searchArea.offsetHeight;
+    searchArea.style.marginBottom = `-${h}px`;
+    searchArea.classList.add('hide-search');
+    isSearchVisible = false;
+    scrollDelta = 0;
+    lock = true;
+    setTimeout(() => lock = false, 300);
+  }
+
+  function showSearch() {
+    searchArea.style.marginBottom = '';
+    searchArea.classList.remove('hide-search');
+    isSearchVisible = true;
+    scrollDelta = 0;
+    lock = true;
+    setTimeout(() => lock = false, 300);
+  }
+
+  cardArea.addEventListener('scroll', function() {
+    if (lock) return;
+
+    const st = cardArea.scrollTop;
+    const diff = st - lastScrollTop;
+    lastScrollTop = st;
+
+    // 微スクロール無視
+    if (Math.abs(diff) < 10) return;
+
+    if (diff > 0) {
+      // 下スクロール：デルタ加算
+      scrollDelta = scrollDelta > 0 ? scrollDelta + diff : diff;
+      if (scrollDelta >= 80 && st > 20 && isSearchVisible) {
+        hideSearch();
+      }
+    } else {
+      // 上スクロール：デルタ加算
+      scrollDelta = scrollDelta < 0 ? scrollDelta + diff : diff;
+      if (scrollDelta <= -40 && !isSearchVisible) {
+        showSearch();
+      }
+    }
+  });
+})();
 </script>
 </body>
 </html>
