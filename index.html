@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>さんぱいGO</title>
 <!-- Android / Chrome -->
-<link rel="icon" href="/icon-192.png">
+<link rel="icon" href="/icon-192.png?v=2">
 <!-- iPhone対応 -->
-<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/icon-192.png?v=2">
 <!-- 高解像度対応 -->
-<link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png">
+<link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png?v=2">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -905,11 +905,21 @@ document.getElementById('surveyPopup').addEventListener('click', function(e) {
 // 初期表示
 renderList(facilities);
 
-// 既存 Service Worker を全解除（過去キャッシュ対策）
+// Service Worker を完全無効化（PWA化させない）
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(function(registrations) {
-    for (let r of registrations) r.unregister();
+    for (let r of registrations) {
+      r.unregister();
+    }
   });
+  // キャッシュストレージも全削除
+  if ('caches' in window) {
+    caches.keys().then(function(names) {
+      for (let name of names) {
+        caches.delete(name);
+      }
+    });
+  }
 }
 
 // ホーム追加バー制御
