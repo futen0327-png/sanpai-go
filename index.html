@@ -357,7 +357,7 @@ body {
   font-size: 17px;
 }
 .line-btn {
-  background: #06C755;
+  background: #5c8fbd;
   color: white;
   border: none;
   border-radius: 10px;
@@ -366,24 +366,24 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 6px;
-  width: 90px;
+  gap: 3px;
+  padding: 6px 8px;
+  width: 88px;
   height: 85px;
   font-weight: bold;
   -webkit-tap-highlight-color: transparent;
 }
 .line-btn img {
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
 }
 .line-text {
-  font-size: 13px;
-  line-height: 1.1;
+  font-size: 11px;
+  line-height: 1.2;
   text-align: center;
 }
 .line-btn:active {
-  background: #05a847;
+  background: #4a7aaa;
 }
 
 /* トースト通知 */
@@ -784,7 +784,7 @@ function renderCard(f, num, isFeatured) {
       </button>
       <button class="line-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\\'")}','${f.distance}','${f.items.replace(/'/g,"\\'")}','${f.lat}','${f.lng}')">
         <img src="images/oyakata.png">
-        <div class="line-text">ココで<br>いい？</div>
+        <div class="line-text">親方に相談<br>（LINEで送る）</div>
       </button>
     </div>
   `;
