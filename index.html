@@ -152,42 +152,30 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
-  min-height: 60px;
-  background: #E60012;
-  color: #FFFFFF;
+  min-height: 48px;
+  background: #E0E0E0;
+  color: #333;
   text-decoration: none;
-  font-size: 18px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: normal;
   border: none;
-  border-radius: 12px;
-  letter-spacing: 0.04em;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  border-radius: 8px;
   -webkit-tap-highlight-color: transparent;
   cursor: pointer;
-  transition: transform 0.1s ease;
 }
 .call-btn:active {
-  background: #c00010;
-  transform: scale(0.97);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
-}
-.call-btn svg {
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
+  background: #d0d0d0;
 }
 /* テストモード：無効状態 */
 .call-btn.disabled {
-  background: #ccc;
-  box-shadow: none;
+  background: #E0E0E0;
   cursor: not-allowed;
-  color: #888;
+  color: #999;
 }
 .call-btn.disabled:active {
-  background: #ccc;
-  transform: none;
+  background: #E0E0E0;
 }
 
 /* サブテキスト・1位メッセージ */
@@ -315,9 +303,9 @@ body {
 }
 .top-card .card-actions .call-btn {
   width: 100%;
-  min-height: 60px;
-  font-size: 18px;
-  border-radius: 12px;
+  min-height: 48px;
+  font-size: 15px;
+  border-radius: 8px;
 }
 .call-hint {
   text-align: center;
@@ -332,31 +320,20 @@ body {
   display: none;
 }
 
-.top-call {
-  background: #e53935;
-}
-.top-call:active {
-  background: #c62828;
-}
-.top-call svg {
-  width: 28px;
-  height: 28px;
-}
-
 /* カードアクションエリア（電話→LINE 縦並び） */
 .card-actions {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 0 10px 16px;
+  padding: 0 10px 12px;
 }
 .card-actions .call-btn {
   flex: none;
   width: 100%;
-  border-radius: 12px;
-  min-height: 60px;
-  font-size: 18px;
-  font-weight: 800;
+  border-radius: 8px;
+  min-height: 48px;
+  font-size: 15px;
+  font-weight: normal;
 }
 .oyakata-wrap {
   display: flex;
@@ -371,18 +348,18 @@ body {
   justify-content: center;
   gap: 8px;
   width: 100%;
-  min-height: 44px;
-  background: #E5E5E5;
-  color: #333;
+  min-height: 48px;
+  background: #00C300;
+  color: #FFFFFF;
   border: none;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: bold;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: normal;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 .oyakata-btn:active {
-  background: #d0d0d0;
+  background: #00a800;
 }
 .oyakata-img {
   width: 28px;
@@ -393,7 +370,7 @@ body {
 }
 .oyakata-note {
   font-size: 10px;
-  color: #aaa;
+  color: #999;
   text-align: center;
   line-height: 1.3;
 }
@@ -548,6 +525,27 @@ body {
   color: #333;
   padding: 10px 0 4px;
   font-weight: bold;
+}
+/* ボタン上書き（強調リセット） */
+.call-btn,
+.line-btn {
+  transition: none !important;
+}
+.call-btn {
+  background: #E0E0E0 !important;
+  color: #333 !important;
+  height: 48px !important;
+  font-weight: normal !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.line-btn {
+  background: #00C300 !important;
+  color: #FFFFFF !important;
+  height: 48px !important;
+  font-weight: normal !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 </style>
 </head>
@@ -773,7 +771,7 @@ let activeMarkers = [];
 // カードHTML生成（全カード共通構造）
 function renderCard(f, num, isFeatured) {
   const price = priceMap[f.priceLevel];
-  const callLabel = isTestMode ? '📞 今すぐ電話する（テスト中）' : '📞 今すぐ電話する';
+  const callLabel = isTestMode ? '今すぐ電話する（テスト中）' : '今すぐ電話する';
   return `
     <div class="card-body">
       <div class="card-name">
@@ -794,7 +792,7 @@ function renderCard(f, num, isFeatured) {
         <button class="oyakata-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\\'")}','${isTestMode ? '' : f.phone}','${f.items.replace(/'/g,"\\'")}','${f.lat}','${f.lng}')">
           <img src="images/oyakata.png" class="oyakata-img">
         </button>
-        <div class="oyakata-note">迷ったらLINEで相談</div>
+        <div class="oyakata-note">迷ったらLINEで</div>
       </div>
     </div>
   `;
