@@ -525,57 +525,67 @@ body {
   font-weight: bold;
 }
 /* ボタン上書き（強調リセット） */
-.call-btn,
-.line-btn {
-  transition: none !important;
-  box-shadow: none !important;
-  transform: none !important;
+.btn-row {
+  display: flex !important;
+  gap: 8px;
+  align-items: flex-start;
+  width: 100%;
 }
-.call-btn {
+.btn-row .call-btn {
+  flex: 1 1 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
   background: #E0E0E0 !important;
   color: #333 !important;
   font-weight: normal !important;
-  width: auto;
-  flex: 7 !important;
-  height: 48px;
-  border-radius: 8px;
+  height: 48px !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: none !important;
 }
-.btn-row {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
+.btn-row .call-btn:active {
+  background: #d0d0d0 !important;
 }
 .line-group {
-  flex: 3;
+  flex: 0 0 72px;
+  width: 72px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 .line-btn {
-  width: 100% !important;
-  height: 36px !important;
+  width: 72px !important;
+  height: 48px !important;
   background: #00C300 !important;
   color: #FFFFFF !important;
   font-weight: normal !important;
   border-radius: 8px !important;
+  border: none !important;
   overflow: hidden;
-  border: none;
   cursor: pointer;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   -webkit-tap-highlight-color: transparent;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: none !important;
 }
 .line-btn:active {
   background: #00a800 !important;
 }
 .line-btn img {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
 }
 .line-sub {
   font-size: 10px;
   color: #999;
-  margin-top: 2px;
+  margin-top: 3px;
   text-align: center;
+  white-space: nowrap;
 }
 </style>
 </head>
