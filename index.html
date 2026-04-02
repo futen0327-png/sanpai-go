@@ -530,61 +530,53 @@ body {
 .call-btn,
 .line-btn {
   transition: none !important;
-  width: 50% !important;
-  height: 48px;
+  box-shadow: none !important;
+  transform: none !important;
 }
 .call-btn {
   background: #E0E0E0 !important;
   color: #333 !important;
   font-weight: normal !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-.line-btn {
-  background: #00C300 !important;
-  color: #FFFFFF !important;
-  font-weight: normal !important;
-  box-shadow: none !important;
-  transform: none !important;
-  overflow: hidden;
-}
-.line-btn img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-.btn-wrap {
-  display: flex;
-  flex-direction: row !important;
-  gap: 8px;
-  margin-top: 8px;
+  width: 70%;
+  height: 48px;
+  border-radius: 8px;
 }
 .btn-row {
   display: flex;
   gap: 8px;
+  align-items: flex-start;
 }
-.btn-row button {
-  width: 50%;
+.line-group {
+  width: 30%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-@media (max-width: 767px) {
-  .btn-row .call-btn {
-    flex: 1;
-    width: auto !important;
-  }
-  .btn-row .line-btn {
-    flex: 0 0 25% !important;
-    width: 25% !important;
-    border-radius: 16px !important;
-    aspect-ratio: 1 / 1;
-    padding: 0;
-  }
+.line-btn {
+  width: 100% !important;
+  height: 36px !important;
+  background: #00C300 !important;
+  color: #FFFFFF !important;
+  font-weight: normal !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.line-btn:active {
+  background: #00a800 !important;
+}
+.line-btn img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 .line-sub {
-  width: 100%;
-  text-align: center;
-  font-size: 12px;
-  margin-top: 4px;
+  font-size: 10px;
   color: #999;
+  margin-top: 2px;
+  text-align: center;
 }
 </style>
 </head>
@@ -828,11 +820,13 @@ function renderCard(f, num, isFeatured) {
         <button class="call-btn${isFeatured ? ' top-call' : ''}${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
           ${callLabel}
         </button>
-        <button class="line-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\\'")}','${isTestMode ? '' : f.phone}','${f.items.replace(/'/g,"\\'")}','${f.lat}','${f.lng}')">
-          <img src="images/oyakata.png" style="width:24px;height:24px;object-fit:contain;border-radius:4px;">
-        </button>
+        <div class="line-group">
+          <button class="line-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\\'")}','${isTestMode ? '' : f.phone}','${f.items.replace(/'/g,"\\'")}','${f.lat}','${f.lng}')">
+            <img src="images/oyakata.png">
+          </button>
+          <div class="line-sub">迷ったらLINEで</div>
+        </div>
       </div>
-      <div class="line-sub">迷ったらLINEで</div>
     </div>
   `;
 }
