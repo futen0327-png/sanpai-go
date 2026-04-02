@@ -553,11 +553,19 @@ body {
   gap: 8px;
   margin-top: 8px;
 }
+.btn-row {
+  display: flex;
+  gap: 8px;
+}
+.btn-row button {
+  width: 50%;
+}
 .line-sub {
   width: 100%;
   text-align: center;
   font-size: 12px;
   margin-top: 4px;
+  color: #999;
 }
 </style>
 </head>
@@ -797,15 +805,15 @@ function renderCard(f, num, isFeatured) {
       <div class="call-hint">空いてるかだけでもOK</div>
     </div>
     <div class="card-actions">
-      <button class="call-btn${isFeatured ? ' top-call' : ''}${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
-        ${callLabel}
-      </button>
-      <div class="oyakata-wrap">
-        <button class="oyakata-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\\'")}','${isTestMode ? '' : f.phone}','${f.items.replace(/'/g,"\\'")}','${f.lat}','${f.lng}')">
-          <img src="images/oyakata.png" class="oyakata-img">
+      <div class="btn-row">
+        <button class="call-btn${isFeatured ? ' top-call' : ''}${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
+          ${callLabel}
         </button>
-        <div class="oyakata-note">迷ったらLINEで</div>
+        <button class="line-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\\'")}','${isTestMode ? '' : f.phone}','${f.items.replace(/'/g,"\\'")}','${f.lat}','${f.lng}')">
+          <img src="images/oyakata.png" style="width:24px;height:24px;object-fit:contain;border-radius:4px;">
+        </button>
       </div>
+      <div class="line-sub">迷ったらLINEで</div>
     </div>
   `;
 }
