@@ -302,7 +302,7 @@ body {
   padding: 0 10px 8px;
 }
 .top-card .card-actions .call-btn {
-  width: 100%;
+  width: auto;
   min-height: 48px;
   font-size: 15px;
   border-radius: 8px;
@@ -320,16 +320,14 @@ body {
   display: none;
 }
 
-/* カードアクションエリア（電話→LINE 縦並び） */
+/* カードアクションエリア */
 .card-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: block;
   padding: 0 10px 12px;
 }
 .card-actions .call-btn {
-  flex: none;
-  width: 100%;
+  flex: 7;
+  width: auto;
   border-radius: 8px;
   min-height: 48px;
   font-size: 15px;
@@ -538,7 +536,7 @@ body {
   color: #333 !important;
   font-weight: normal !important;
   width: auto;
-  flex: 7;
+  flex: 7 !important;
   height: 48px;
   border-radius: 8px;
 }
@@ -548,7 +546,7 @@ body {
   align-items: flex-start;
 }
 .line-group {
-  flex: 0 0 30%;
+  flex: 3;
   display: flex;
   flex-direction: column;
   align-items: center;
