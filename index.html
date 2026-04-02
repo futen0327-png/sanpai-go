@@ -530,11 +530,12 @@ body {
 .call-btn,
 .line-btn {
   transition: none !important;
+  width: 50% !important;
+  height: 48px;
 }
 .call-btn {
   background: #E0E0E0 !important;
   color: #333 !important;
-  height: 48px !important;
   font-weight: normal !important;
   box-shadow: none !important;
   transform: none !important;
@@ -542,10 +543,21 @@ body {
 .line-btn {
   background: #00C300 !important;
   color: #FFFFFF !important;
-  height: 48px !important;
   font-weight: normal !important;
   box-shadow: none !important;
   transform: none !important;
+}
+.btn-wrap {
+  display: flex;
+  flex-direction: row !important;
+  gap: 8px;
+  margin-top: 8px;
+}
+.line-sub {
+  width: 100%;
+  text-align: center;
+  font-size: 12px;
+  margin-top: 4px;
 }
 </style>
 </head>
