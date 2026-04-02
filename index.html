@@ -66,11 +66,11 @@ body {
   flex: 1;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 0 10px 60px;
+  padding: 0 10px 44px;
 }
 
 .list-label {
-  padding: 10px 2px 8px;
+  padding: 4px 2px 4px;
   font-size: 12px;
   font-weight: bold;
   color: #888;
@@ -91,13 +91,13 @@ body {
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
 .card-body {
-  padding: 12px 12px 8px;
+  padding: 8px 12px 4px;
 }
 
 .card-name {
   font-size: 16px;
   font-weight: bold;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -121,7 +121,7 @@ body {
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .card-distance {
   font-size: 13px;
@@ -185,17 +185,11 @@ body {
 
 /* サブテキスト・1位メッセージ */
 .call-note {
-  font-size: 11px;
-  color: #666;
-  margin-top: 6px;
-  text-align: center;
+  display: none;
 }
 
 .top-reason {
-  font-size: 12px;
-  color: #d32f2f;
-  font-weight: bold;
-  margin-top: 6px;
+  display: none;
 }
 
 /* スマホ：ロゴ画像切替・サイズ調整 */
@@ -290,11 +284,11 @@ body {
   box-shadow: 0 4px 16px rgba(0,0,0,0.16);
 }
 .top-card .card-body {
-  padding: 16px 16px 10px;
+  padding: 8px 12px 4px;
 }
 .top-card .card-name {
-  font-size: 20px;
-  margin-bottom: 10px;
+  font-size: 16px;
+  margin-bottom: 4px;
 }
 
 .top-badge {
@@ -310,20 +304,20 @@ body {
 
 /* 1位カード：ボタンエリア */
 .top-card .card-actions {
-  padding: 0 12px 14px;
+  padding: 0 10px 8px;
 }
 .top-card .card-actions .call-btn {
   width: 100%;
-  min-height: 62px;
-  font-size: 19px;
-  border-radius: 12px;
+  min-height: 48px;
+  font-size: 17px;
+  border-radius: 10px;
 }
 .call-hint {
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   color: #e53935;
   font-weight: bold;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 /* featured以外では非表示 */
 .card:not(.top-card) .call-hint,
@@ -347,13 +341,13 @@ body {
   display: flex;
   align-items: stretch;
   gap: 10px;
-  padding: 0 10px 10px;
+  padding: 0 10px 8px;
 }
 .card-actions .call-btn {
   flex: 1;
   width: auto;
   border-radius: 10px;
-  min-height: 32px;
+  min-height: 48px;
   font-size: 17px;
 }
 .oyakata-wrap {
@@ -370,9 +364,9 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 .oyakata-img {
-  width: 100px;
+  width: 80px;
   height: auto;
-  border-radius: 16px;
+  border-radius: 12px;
   display: block;
 }
 .oyakata-note {
@@ -759,9 +753,7 @@ let activeMarkers = [];
 function renderCard(f, num, isFeatured) {
   const price = priceMap[f.priceLevel];
   const svgFill = isTestMode ? '#aaa' : 'white';
-  const callLabel = isFeatured
-    ? `今すぐ空き確認する（30秒）${isTestMode ? '（テスト中）' : ''}`
-    : `空き確認・今すぐ電話${isTestMode ? '（テスト中）' : ''}`;
+  const callLabel = isTestMode ? '今すぐ電話（テスト中）' : '今すぐ電話';
   return `
     <div class="card-body">
       <div class="card-name">
@@ -772,9 +764,7 @@ function renderCard(f, num, isFeatured) {
         <span class="price-badge ${price.cls}">${price.label}</span>
       </div>
       <div class="card-items">受入品目：${f.items}</div>
-      <div class="card-phone">📞 ${getPhoneDisplay(f.phone)}</div>
       <div class="call-hint">空いてるかだけでもOK</div>
-      <div class="call-note">※空き状況・料金は電話で即確認できます</div>
     </div>
     <div class="card-actions">
       <button class="call-btn${isFeatured ? ' top-call' : ''}${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
@@ -787,7 +777,7 @@ function renderCard(f, num, isFeatured) {
         <button class="oyakata-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\\'")}','${isTestMode ? '' : f.phone}','${f.items.replace(/'/g,"\\'")}','${f.lat}','${f.lng}')">
           <img src="images/oyakata.png" class="oyakata-img">
         </button>
-        <div class="oyakata-note">※LINEで確認してから送信</div>
+        <div class="oyakata-note">迷ったらLINEで</div>
       </div>
     </div>
   `;
