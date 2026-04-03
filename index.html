@@ -528,7 +528,7 @@ body {
 .btn-row {
   display: flex !important;
   gap: 8px;
-  align-items: flex-start;
+  align-items: stretch;
   width: 100%;
 }
 .btn-row .call-btn {
@@ -538,7 +538,8 @@ body {
   background: #E0E0E0 !important;
   color: #333 !important;
   font-weight: normal !important;
-  height: 48px !important;
+  height: auto !important;
+  min-height: 48px !important;
   border-radius: 8px !important;
   box-shadow: none !important;
   transform: none !important;
@@ -833,7 +834,7 @@ function renderCard(f, num, isFeatured) {
           <button class="line-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\\'")}','${isTestMode ? '' : f.phone}','${f.items.replace(/'/g,"\\'")}','${f.lat}','${f.lng}')">
             <img src="images/oyakata.png">
           </button>
-          <div class="line-sub">迷ったらLINEで</div>
+          <div class="line-sub">LINEで共有</div>
         </div>
       </div>
     </div>
