@@ -155,7 +155,7 @@ body {
   gap: 8px;
   width: 100%;
   min-height: 48px;
-  background: #E0E0E0;
+  background: transparent;
   color: #333;
   text-decoration: none;
   font-size: 15px;
@@ -535,7 +535,7 @@ body {
   flex: 1 1 auto !important;
   width: auto !important;
   min-width: 0 !important;
-  background: #E0E0E0 !important;
+  background: transparent !important;
   color: #333 !important;
   font-weight: normal !important;
   height: auto !important;
@@ -544,6 +544,8 @@ body {
   box-shadow: none !important;
   transform: none !important;
   transition: none !important;
+  padding: 0 !important;
+  overflow: hidden;
 }
 .btn-row .call-btn:active {
   background: #d0d0d0 !important;
@@ -587,6 +589,12 @@ body {
   margin-top: 3px;
   text-align: center;
   white-space: nowrap;
+}
+.call-btn-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 </style>
 </head>
@@ -828,7 +836,7 @@ function renderCard(f, num, isFeatured) {
     <div class="card-actions">
       <div class="btn-row">
         <button class="call-btn${isFeatured ? ' top-call' : ''}${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
-          ${callLabel}
+          <img src="images/${isFeatured ? 'call-btn-top' : 'call-btn-normal'}.png" class="call-btn-img" alt="${callLabel}">
         </button>
         <div class="line-group">
           <button class="line-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\\'")}','${isTestMode ? '' : f.phone}','${f.items.replace(/'/g,"\\'")}','${f.lat}','${f.lng}')">
