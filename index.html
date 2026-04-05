@@ -484,16 +484,13 @@ body.map-expanded .logo-banner {
 
 /* 地図を高さアニメで拡大 */
 #map {
-  transition: height 0.25s ease;
+  transition: flex 0.25s ease;
 }
 body.map-expanded #map {
-  height: 70vh;
+  flex: 4;
+  height: auto;
 }
 
-/* 拡大時はカードリストのスクロールを止める */
-body.map-expanded .list-wrap {
-  overflow: hidden;
-}
 
 /* 地図ラッパー（閉じるボタン配置用） */
 #map-wrap {
