@@ -373,10 +373,12 @@ body.map-expanded .top-card .card-name .no1-badge {
 }
 
 /* 地図拡大時：no1-badgeをcard-meta行に表示 */
-body.map-expanded .top-card .card-meta .no1-badge {
+.top-card .card-meta .meta-badge {
+  display: none;
+}
+body.map-expanded .top-card .card-meta .meta-badge {
   display: inline-flex;
 }
-
 /* 前回1位カードのほんのり残留スタイル */
 .card.prev-top {
   background: #FFFDE7;
@@ -1051,7 +1053,7 @@ function renderCard(f, num, isFeatured) {
       <div class="card-meta">
         <span class="card-distance">📍 ${f.distance}km</span>
         <span class="price-badge ${price.cls}">${price.label}</span>
-        ${isFeatured ? '<span class="no1-badge" style="display:none;">🏆 一番近い</span>' : ''}
+        ${isFeatured ? '<span class="no1-badge meta-badge">🏆 一番近い</span>' : ''}
       </div>
       <div class="card-items">受入品目：${f.items}</div>
       <div class="call-hint">空いてるかだけでもOK</div>
