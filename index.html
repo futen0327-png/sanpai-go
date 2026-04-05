@@ -359,12 +359,14 @@ body.map-expanded .top-card .card-name {
   overflow: hidden;
 }
 body.map-expanded .top-card .card-name .name-text {
-  font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   flex-shrink: 1;
   min-width: 0;
+}
+body.map-expanded .top-card .card-name .name-text.name-long {
+  font-size: 13px;
 }
 
 /* 地図拡大時：no1-badgeを名前行では非表示 */
@@ -1047,7 +1049,7 @@ function renderCard(f, num, isFeatured) {
   return `
     <div class="card-body">
       <div class="card-name">
-        <span class="card-num">${num}</span><span class="name-text">${f.name}</span>
+        <span class="card-num">${num}</span><span class="name-text${f.name.length >= 8 ? ' name-long' : ''}">${f.name}</span>
       ${isFeatured ? '<span class="no1-badge">🏆 一番近い</span>' : '<span class="top-badge">今すぐ行ける可能性高い</span>'}
       </div>
       <div class="card-meta">
