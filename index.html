@@ -36,6 +36,9 @@ body {
   width: 100%;
   flex-shrink: 0;
   background: #1c6ea8;
+  max-height: 200px;
+  overflow: hidden;
+  transition: max-height 0.25s ease, opacity 0.25s ease;
 }
 
 .header-inner {
@@ -59,6 +62,7 @@ body {
 #map {
   height: 32vh;
   flex-shrink: 0;
+  transition: flex-grow 0.25s ease, height 0.25s ease;
 }
 
 /* 一覧エリア */
@@ -468,6 +472,51 @@ body {
   }
 }
 
+/* ── 地図拡大機能 ── */
+
+/* 拡大時：検索窓を高さゼロに潰す */
+body.map-expanded .logo-banner {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 拡大時：地図をflex比率で拡大（heightはautoに） */
+body.map-expanded #map {
+  flex-grow: 8;
+  height: auto;
+}
+
+/* 地図ラッパー（閉じるボタン配置用） */
+#map-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* 閉じるボタン（通常時は非表示） */
+#map-close-btn {
+  display: none;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1000;
+  width: 34px;
+  height: 34px;
+  background: rgba(255,255,255,0.92);
+  border: none;
+  border-radius: 50%;
+  font-size: 18px;
+  line-height: 34px;
+  text-align: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+/* 拡大時だけ閉じるボタンを表示 */
+body.map-expanded #map-close-btn {
+  display: block;
+}
+
 /* ホーム追加案内ポップアップ */
 .modal-overlay {
   display: none;
@@ -735,7 +784,10 @@ body {
 </div>
 
 <!-- 地図 -->
-<div id="map"></div>
+<div id="map-wrap">
+  <div id="map"></div>
+  <button id="map-close-btn">✕</button>
+</div>
 
 <!-- 一覧 -->
 <div class="list-wrap">
@@ -1197,6 +1249,36 @@ clearBtn.addEventListener('click', () => {
 });
 
 categorySelect.addEventListener('change', applyFilters);
+
+// ── 地図タップ拡大機能 ──
+let _mapExpanded = false;
+
+function expandMap() {
+  _mapExpanded = true;
+  document.body.classList.add('map-expanded');
+  setTimeout(() => map.invalidateSize(), 280);
+}
+
+function collapseMap() {
+  _mapExpanded = false;
+  document.body.classList.remove('map-expanded');
+  setTimeout(() => map.invalidateSize(), 280);
+}
+
+// 地図タップ：拡大／縮小トグル
+map.on('click', () => {
+  if (_mapExpanded) {
+    collapseMap();
+  } else {
+    expandMap();
+  }
+});
+
+// ✕ボタンで縮小
+document.getElementById('map-close-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  collapseMap();
+});
 
 // 地図移動終了トリガー（moveend = 指を離した瞬間）
 // プログラム側からの移動（setView・fitBounds）は無視する
