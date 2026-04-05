@@ -74,10 +74,26 @@ body {
 }
 
 .list-label {
-  padding: 4px 2px 4px;
+  padding: 4px 6px;
   font-size: 12px;
   font-weight: bold;
   color: #888;
+  border-radius: 4px;
+  display: inline-block;
+  transition: background 0.2s, color 0.2s;
+}
+.list-label.flash {
+  background: #FFF176;
+  color: #333;
+}
+
+@keyframes labelFlash {
+  0%   { background: #FFF176; color: #333; }
+  70%  { background: #FFF176; color: #333; }
+  100% { background: transparent; color: #888; }
+}
+.list-label.flash {
+  animation: labelFlash 0.8s ease forwards;
 }
 
 /* カード */
@@ -811,7 +827,7 @@ body.map-expanded #map-close-btn {
 
 <!-- 一覧 -->
 <div class="list-wrap">
-  <div class="list-label">📍 近い順で表示中</div>
+  <div class="list-label" id="listLabel">📍 このエリア内でおすすめ順</div>
   <div id="list"></div>
 </div>
 
@@ -1192,6 +1208,12 @@ function updateByMapBounds() {
   const toast = document.getElementById('area-toast');
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 500);
+
+  // ラベルを一瞬光らせる
+  const label = document.getElementById('listLabel');
+  label.classList.remove('flash');
+  void label.offsetWidth; // リフロー強制（アニメリセット）
+  label.classList.add('flash');
 
   // ③ 前回1位の施設名を記録してからrenderList
   const newTopName = inView[0]?.name || '';
