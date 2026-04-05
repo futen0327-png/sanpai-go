@@ -1244,19 +1244,46 @@ function calcDistance(lat1, lng1, lat2, lng2) {
 
 // 地図範囲内の施設をランキングしてカード更新
 function updateByMapBounds() {
-  // フィルター入力中は地図連動しない（検索結果を上書きしない）
-  const keyword = document.getElementById('searchInput').value.trim();
-  const category = document.getElementById('categorySelect').value;
-  if (keyword || category) return;
-
   const bounds = map.getBounds();
   const center = map.getCenter();
 
-  // 表示範囲内に絞り込み
-  let inView = facilities.filter(f => bounds.contains([f.lat, f.lng]));
+  // 検索条件を取得
+  const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+  const category = document.getElementById('categorySelect').value;
+  const words = keyword ? keyword.split(/\s+/) : [];
 
-  // 範囲内0件の場合は何もしない
-  if (inView.length === 0) return;
+  // 全施設を対象にキーワード・カテゴリで絞り込み
+  let filtered = facilities;
+
+  if (words.length > 0) {
+    filtered = filtered
+      .map(f => {
+        let score = 0;
+        words.forEach(w => {
+          if (f.region.toLowerCase().includes(w)) score += 3;
+          if (f.items.toLowerCase().includes(w))  score += 2;
+          if (f.name.toLowerCase().includes(w))   score += 1;
+          if ((f.address || '').toLowerCase().includes(w)) score += 2;
+        });
+        return { ...f, score };
+      })
+      .filter(f => f.score > 0)
+      .map(({ score, ...f }) => f);
+  }
+
+  if (category) {
+    filtered = filtered.filter(f => f.items.includes(category));
+  }
+
+  // 表示範囲内に絞り込み
+  let inView = filtered.filter(f => bounds.contains([f.lat, f.lng]));
+
+  // 範囲内0件かつ検索条件ありの場合 → 検索結果全件を距離順で表示
+  if (inView.length === 0 && filtered.length > 0) {
+    inView = filtered;
+  } else if (inView.length === 0) {
+    return;
+  }
 
   // 距離ベースでスコアリング・並び替え
   inView = inView
@@ -1311,33 +1338,8 @@ function updateByMapBounds() {
 
 // 複合フィルター
 function applyFilters() {
-  const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
-  const category = document.getElementById('categorySelect').value;
-  const words = keyword ? keyword.split(/\s+/) : [];
-
-  let filtered = facilities;
-
-  if (words.length > 0) {
-    filtered = filtered
-      .map(f => {
-        let score = 0;
-        words.forEach(w => {
-          if (f.region.toLowerCase().includes(w)) score += 3;
-          if (f.items.toLowerCase().includes(w))  score += 2;
-          if (f.name.toLowerCase().includes(w))   score += 1;
-        });
-        return { ...f, score };
-      })
-      .filter(f => f.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .map(({ score, ...f }) => f);
-  }
-
-  if (category) {
-    filtered = filtered.filter(f => f.items.includes(category));
-  }
-
-  renderList(filtered);
+  // 検索条件が変わったら地図連動で再描画
+  updateByMapBounds();
 }
 
 const searchInput = document.getElementById('searchInput');
