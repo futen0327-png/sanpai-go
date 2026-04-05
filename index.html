@@ -966,8 +966,8 @@ function renderCard(f, num, isFeatured) {
   `;
 }
 
-// カード＋マーカー描画
-function renderList(data) {
+// カード＋マーカー描画（skipFitBounds=true のとき地図自動ズームをスキップ）
+function renderList(data, skipFitBounds = false) {
   listEl.innerHTML = '';
 
   // 既存マーカー削除
@@ -1045,12 +1045,14 @@ function renderList(data) {
   });
 
 
-  // fitBounds で自動ズーム
-  const bounds = L.latLngBounds(data.map(f => [f.lat, f.lng]));
-  map.fitBounds(bounds, { padding: [40, 40] });
+  // fitBounds で自動ズーム（地図連動時はスキップ）
+  if (!skipFitBounds) {
+    const bounds = L.latLngBounds(data.map(f => [f.lat, f.lng]));
+    map.fitBounds(bounds, { padding: [40, 40] });
+  }
 }
 
-// 2点間の距離計算（km）ハversine式
+// 2点間の距離計算（km）haversine式
 function calcDistance(lat1, lng1, lat2, lng2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -1061,37 +1063,35 @@ function calcDistance(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-// エリアトースト表示
-function showAreaToast() {
-  const toast = document.getElementById('area-toast');
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 600);
-}
-
-// 地図範囲内の施設をランキングしてrenderListに渡す
+// 地図範囲内の施設をランキングしてカード更新
 function updateByMapBounds() {
+  // フィルター入力中は地図連動しない（検索結果を上書きしない）
+  const keyword = document.getElementById('searchInput').value.trim();
+  const category = document.getElementById('categorySelect').value;
+  if (keyword || category) return;
+
   const bounds = map.getBounds();
   const center = map.getCenter();
 
   // 表示範囲内に絞り込み
   let inView = facilities.filter(f => bounds.contains([f.lat, f.lng]));
 
-  // 件数制限（最大10件）
+  // 範囲内0件の場合は何もしない
   if (inView.length === 0) return;
 
-  // 距離スコアで並び替え（近いほど高評価）
+  // 距離ベースでスコアリング・並び替え
   inView = inView
     .map(f => {
       const dist = calcDistance(center.lat, center.lng, f.lat, f.lng);
-      const priceBonus = f.priceLevel === 'cheap' ? 0.5 : 0;
-      return { ...f, _score: dist - priceBonus, _dist: dist };
+      const priceBonus = f.priceLevel === 'cheap' ? 0.3 : 0;
+      return { ...f, _sortScore: dist - priceBonus };
     })
-    .sort((a, b) => a._score - b._score)
+    .sort((a, b) => a._sortScore - b._sortScore)
     .slice(0, 10)
-    .map(({ _score, _dist, ...f }) => f);
+    .map(({ _sortScore, ...f }) => f);
 
-  showAreaToast();
-  renderList(inView);
+  // skipFitBounds=true で renderList を呼ぶ（ループ防止）
+  renderList(inView, true);
 }
 
 // 複合フィルター
@@ -1143,14 +1143,8 @@ clearBtn.addEventListener('click', () => {
 
 categorySelect.addEventListener('change', applyFilters);
 
-// 地図移動終了トリガー（ガチャガチャ防止）
-map.on('moveend', () => {
-  // フィルター入力中は地図連動しない
-  const keyword = document.getElementById('searchInput').value.trim();
-  const category = document.getElementById('categorySelect').value;
-  if (keyword || category) return;
-  updateByMapBounds();
-});
+// 地図移動終了トリガー（moveend = 指を離した瞬間）
+map.on('moveend', updateByMapBounds);
 
 // アンケートポップアップ制御
 function surveySelect(btn) {
