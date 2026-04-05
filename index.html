@@ -157,6 +157,11 @@ body {
 .price-normal { background: #fff8e1; color: #e65100; }
 .price-high   { background: #fdecea; color: #c62828; }
 
+.card-address {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 2px;
+}
 .card-items {
   font-size: 12px;
   color: #888;
@@ -945,6 +950,7 @@ const facilities = [
   {
     name: "光リサイクルセンター",
     region: "奈良",
+    address: "奈良県御所市柏原",
     lat: 34.4497,
     lng: 135.7692,
     distance: 0,
@@ -1012,6 +1018,7 @@ function renderCard(f, num, isFeatured) {
         <span class="card-num">${num}</span>${f.name}
       ${isFeatured ? '<span class="no1-badge">🏆 一番近い</span>' : '<span class="top-badge">今すぐ行ける可能性高い</span>'}
       </div>
+      ${f.address ? `<div class="card-address">📌 ${f.address}</div>` : ''}
       <div class="card-meta">
         <span class="card-distance">📍 ${f.distance}km</span>
         <span class="price-badge ${price.cls}">${price.label}</span>
