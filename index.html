@@ -482,16 +482,21 @@ body.map-expanded .logo-banner {
 }
 
 /* 拡大時：地図をflex比率で拡大（heightはautoに） */
-body.map-expanded #map {
+body.map-expanded #map-wrap {
   flex-grow: 8;
   flex-shrink: 1;
   height: 0;
+}
+body.map-expanded #map {
+  height: 100%;
 }
 
 /* 地図ラッパー（閉じるボタン配置用） */
 #map-wrap {
   position: relative;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 閉じるボタン（通常時は非表示） */
