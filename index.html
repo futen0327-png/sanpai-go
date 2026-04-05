@@ -349,6 +349,27 @@ body {
   white-space: nowrap;
 }
 
+/* 前回1位カードのほんのり残留スタイル */
+.card.prev-top {
+  background: #FFFDE7;
+  border: 1px solid #F9E07A;
+}
+
+/* 1位カード登場アニメ */
+@keyframes slideUpFadeIn {
+  from {
+    opacity: 0.4;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.top-card.animate-in {
+  animation: slideUpFadeIn 0.35s ease-out forwards;
+}
+
 /* featured以外では非表示 */
 .card:not(.top-card) .call-hint,
 .card:not(.top-card) .top-badge {
@@ -751,7 +772,7 @@ body {
 <!-- トースト通知 -->
 <div class="toast" id="toast"></div>
 
-<div id="area-toast">このエリアのおすすめを表示</div>
+<div id="area-toast">表示範囲が変わりました</div>
 
 <!-- アンケートポップアップ -->
 <div class="modal-overlay" id="surveyPopup">
@@ -931,6 +952,7 @@ if (navigator.geolocation) {
 // アクティブマーカー管理
 let activeMarkers = [];
 let _suppressMoveend = false;
+let _prevTopName = '';
 
 // カードHTML生成（全カード共通構造）
 function renderCard(f, num, isFeatured) {
@@ -942,7 +964,7 @@ function renderCard(f, num, isFeatured) {
     <div class="card-body">
       <div class="card-name">
         <span class="card-num">${num}</span>${f.name}
-      ${isFeatured ? '<span class="no1-badge">🏆 このエリアNo.1</span>' : '<span class="top-badge">今すぐ行ける可能性高い</span>'}
+      ${isFeatured ? '<span class="no1-badge">🏆 このエリアで一番近い</span>' : '<span class="top-badge">今すぐ行ける可能性高い</span>'}
       </div>
       <div class="card-meta">
         <span class="card-distance">📍 ${f.distance}km</span>
@@ -1093,8 +1115,38 @@ function updateByMapBounds() {
     .slice(0, 10)
     .map(({ _sortScore, ...f }) => f);
 
+  // ② トースト表示（0.5秒で消える）
+  const toast = document.getElementById('area-toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 500);
+
+  // ③ 前回1位の施設名を記録してからrenderList
+  const newTopName = inView[0]?.name || '';
+  const prevName = _prevTopName;
+  _prevTopName = newTopName;
+
   // skipFitBounds=true で renderList を呼ぶ（ループ防止）
   renderList(inView, true);
+
+  // ③ 前回1位カードにほんのり残留スタイルを付ける
+  if (prevName && prevName !== newTopName) {
+    const allCards = document.querySelectorAll('#list .card');
+    allCards.forEach(card => {
+      const nameEl = card.querySelector('.card-name');
+      if (nameEl && nameEl.textContent.includes(prevName)) {
+        card.classList.add('prev-top');
+        setTimeout(() => card.classList.remove('prev-top'), 3000);
+      }
+    });
+  }
+
+  // ④ 1位カードに登場アニメを付ける
+  const topCard = document.querySelector('#list .card.top-card');
+  if (topCard) {
+    topCard.classList.remove('animate-in');
+    void topCard.offsetWidth; // リフロー強制（アニメリセット）
+    topCard.classList.add('animate-in');
+  }
 }
 
 // 複合フィルター
