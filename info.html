@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>利用案内 / 運営情報 | さんぱいGO</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+      background: #f2f2f2;
+      color: #222;
+      min-height: 100vh;
+    }
+    .header {
+      background: #1c6ea8;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .back-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 22px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 4px;
+    }
+    .header-title {
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .content {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+    }
+    .section {
+      background: white;
+      border-radius: 10px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 0.5px solid #e0e0e0;
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: bold;
+      color: #1c6ea8;
+      margin-bottom: 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #e8f0f8;
+    }
+    .section-body {
+      font-size: 14px;
+      color: #444;
+      line-height: 1.8;
+    }
+    .section-body a {
+      color: #1c6ea8;
+      text-decoration: none;
+    }
+    .footer {
+      text-align: center;
+      font-size: 11px;
+      color: #aaa;
+      padding: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <button class="back-btn" onclick="history.back()">←</button>
+  <div class="header-title">利用案内 / 運営情報</div>
+</div>
+
+<div class="content">
+
+  <div class="section">
+    <div class="section-title">さんぱいGOについて</div>
+    <div class="section-body">
+      さんぱいGOは、近くの産廃処分場にすぐ電話できるサービスです。<br>
+      現場で「今すぐ処分場を探したい」状況に特化しています。
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">使い方</div>
+    <div class="section-body">
+      地図または一覧から処分場を選び、「今すぐ電話」ボタンを押すだけで連絡できます。
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">ご注意</div>
+    <div class="section-body">
+      掲載情報は変更される可能性があります。<br>
+      受入可否・料金・営業時間などの詳細は、各施設へ直接ご確認ください。
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">運営者</div>
+    <div class="section-body">
+      さんぱいGO運営
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">お問い合わせ</div>
+    <div class="section-body">
+      <a href="mailto:info@sanpaigo.com">info@sanpaigo.com</a>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">© さんぱいGO</div>
+
+</body>
+</html>
