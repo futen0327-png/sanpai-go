@@ -991,17 +991,8 @@ function renderList(data) {
         if (phone) window.location.href = 'tel:' + phone;
       }
       promptAddHome();
-      // 初回のみアンケートを5秒後に表示
-      if (!localStorage.getItem('sanpai_feedback')) {
-        setTimeout(() => {
-          // ホーム追加ポップアップが表示中でも重ねて出す
-          const el = document.getElementById('surveyPopup');
-          el.classList.add('active');
-          document.getElementById('surveyTitle').textContent = '電話できましたか？';
-          document.getElementById('surveyButtons').style.display = '';
-          document.getElementById('surveyResult').style.display = 'none';
-        }, 5000);
-      }
+      // 電話ボタンを押したフラグを立てる
+      sessionStorage.setItem('sanpai_called', '1');
     });
   });
 
@@ -1078,10 +1069,30 @@ document.getElementById('surveySubmit').addEventListener('click', () => {
     feedback[keys[i]] = active ? active.querySelector('.s-symbol').textContent + active.querySelector('.s-word').textContent : '';
   });
   localStorage.setItem('sanpai_feedback', JSON.stringify(feedback));
+  localStorage.setItem('sanpai_survey_date', new Date().toLocaleDateString('ja-JP'));
   document.getElementById('surveyPopup').classList.remove('active');
 });
 document.getElementById('surveyPopup').addEventListener('click', function(e) {
-  if (e.target === this) this.classList.remove('active');
+  if (e.target === this) {
+    localStorage.setItem('sanpai_survey_date', new Date().toLocaleDateString('ja-JP'));
+    this.classList.remove('active');
+  }
+});
+
+// アンケートポップアップ：復帰検知トリガー（1日1回）
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState !== 'visible') return;
+  if (!sessionStorage.getItem('sanpai_called')) return;
+
+  // 1日1回チェック
+  const today = new Date().toLocaleDateString('ja-JP');
+  if (localStorage.getItem('sanpai_survey_date') === today) return;
+
+  // フラグをリセットして1秒後にポップアップ表示
+  sessionStorage.removeItem('sanpai_called');
+  setTimeout(() => {
+    document.getElementById('surveyPopup').classList.add('active');
+  }, 1000);
 });
 
 
