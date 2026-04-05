@@ -488,36 +488,62 @@ body {
 }
 
 /* アンケートポップアップ */
-.survey-btn-success {
+.survey-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0 16px;
+}
+.survey-table th,
+.survey-table td {
+  text-align: center;
+  padding: 8px 4px;
+  font-size: 15px;
+}
+.survey-table th {
+  color: #555;
+  font-weight: normal;
+  border-bottom: 1px solid #ddd;
+}
+.survey-table td:first-child {
+  text-align: left;
+  font-weight: bold;
+  color: #333;
+}
+.survey-radio-group {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.survey-radio-group label {
+  cursor: pointer;
+  font-size: 20px;
+  opacity: 0.35;
+  transition: opacity 0.15s;
+}
+.survey-radio-group input[type="radio"] {
+  display: none;
+}
+.survey-radio-group input[type="radio"]:checked + span {
+  opacity: 1;
+}
+.survey-radio-group label:has(input:checked) {
+  opacity: 1;
+}
+.survey-submit-btn {
   display: block;
   width: 100%;
-  padding: 14px;
-  background: #2e7d32;
+  padding: 13px;
+  background: #1565c0;
   color: #fff;
   border: none;
   border-radius: 8px;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
-  margin-bottom: 10px;
+  margin-top: 4px;
 }
-.survey-btn-success:active {
-  background: #1b5e20;
-}
-.survey-btn-fail {
-  display: block;
-  width: 100%;
-  padding: 14px;
-  background: #c62828;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-}
-.survey-btn-fail:active {
-  background: #7f0000;
+.survey-submit-btn:active {
+  background: #0d47a1;
 }
 .survey-result {
   font-size: 15px;
@@ -669,10 +695,39 @@ body {
 <!-- アンケートポップアップ -->
 <div class="modal-overlay" id="surveyPopup">
   <div class="modal-box">
-    <div class="modal-title" id="surveyTitle">電話できましたか？</div>
+    <div class="modal-title">電話どうでした？</div>
     <div id="surveyButtons">
-      <button class="survey-btn-success" id="surveySuccess">つながった 👍</button>
-      <button class="survey-btn-fail" id="surveyFail">つながらなかった 👎</button>
+      <table class="survey-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>◎</th>
+            <th>○</th>
+            <th>×</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>接続</td>
+            <td><label><input type="radio" name="q_connect" value="◎"><span>◎</span></label></td>
+            <td><label><input type="radio" name="q_connect" value="○"><span>○</span></label></td>
+            <td><label><input type="radio" name="q_connect" value="×"><span>×</span></label></td>
+          </tr>
+          <tr>
+            <td>受入</td>
+            <td><label><input type="radio" name="q_accept" value="◎"><span>◎</span></label></td>
+            <td><label><input type="radio" name="q_accept" value="○"><span>○</span></label></td>
+            <td><label><input type="radio" name="q_accept" value="×"><span>×</span></label></td>
+          </tr>
+          <tr>
+            <td>金額</td>
+            <td><label><input type="radio" name="q_price" value="◎"><span>◎</span></label></td>
+            <td><label><input type="radio" name="q_price" value="○"><span>○</span></label></td>
+            <td><label><input type="radio" name="q_price" value="×"><span>×</span></label></td>
+          </tr>
+        </tbody>
+      </table>
+      <button class="survey-submit-btn" id="surveySubmit">送信して閉じる</button>
     </div>
     <div class="survey-result" id="surveyResult" style="display:none;"></div>
   </div>
@@ -985,26 +1040,13 @@ clearBtn.addEventListener('click', () => {
 categorySelect.addEventListener('change', applyFilters);
 
 // アンケートポップアップ制御
-function closeSurveyAfterDelay() {
-  setTimeout(() => {
-    document.getElementById('surveyPopup').classList.remove('active');
-  }, 1800);
-}
-document.getElementById('surveySuccess').addEventListener('click', () => {
-  localStorage.setItem('sanpai_feedback', 'success');
-  document.getElementById('surveyButtons').style.display = 'none';
-  const result = document.getElementById('surveyResult');
-  result.textContent = 'ご利用ありがとうございます';
-  result.style.display = '';
-  closeSurveyAfterDelay();
-});
-document.getElementById('surveyFail').addEventListener('click', () => {
-  localStorage.setItem('sanpai_feedback', 'fail');
-  document.getElementById('surveyButtons').style.display = 'none';
-  const result = document.getElementById('surveyResult');
-  result.textContent = '他の施設も確認できます';
-  result.style.display = '';
-  closeSurveyAfterDelay();
+document.getElementById('surveySubmit').addEventListener('click', () => {
+  const connect = document.querySelector('input[name="q_connect"]:checked')?.value || '';
+  const accept  = document.querySelector('input[name="q_accept"]:checked')?.value  || '';
+  const price   = document.querySelector('input[name="q_price"]:checked')?.value   || '';
+  const feedback = { 接続: connect, 受入: accept, 金額: price };
+  localStorage.setItem('sanpai_feedback', JSON.stringify(feedback));
+  document.getElementById('surveyPopup').classList.remove('active');
 });
 document.getElementById('surveyPopup').addEventListener('click', function(e) {
   if (e.target === this) this.classList.remove('active');
