@@ -942,11 +942,100 @@ function showToast(msg) {
 // ────────────────────────────────────────
 // テストモードフラグ
 // 本番公開時は false に変更するだけで電話機能が有効になります
-const isTestMode = false;
+const isTestMode = true;
 // ────────────────────────────────────────
 
 
+// ダミーデータ（大阪5件＋奈良5件）
 const facilities = [
+  {
+    name: "大阪リサイクルセンター",
+    region: "大阪",
+    address: "大阪府大阪市西淀川区",
+    lat: 34.6937,
+    lng: 135.5023,
+    distance: 0,
+    priceLevel: "cheap",
+    items: "木くず・金属くず",
+    phone: "0000000000"
+  },
+  {
+    name: "なにわ産廃処理場",
+    region: "大阪",
+    address: "大阪府大阪市福島区",
+    lat: 34.7100,
+    lng: 135.4900,
+    distance: 0,
+    priceLevel: "normal",
+    items: "混合廃棄物・がれき",
+    phone: "0000000000"
+  },
+  {
+    name: "関西エコ処理センター",
+    region: "大阪",
+    address: "大阪府大阪市住之江区",
+    lat: 34.6800,
+    lng: 135.5200,
+    distance: 0,
+    priceLevel: "high",
+    items: "廃プラ・廃油",
+    phone: "0000000000"
+  },
+  {
+    name: "堺クリーンプラント",
+    region: "堺",
+    address: "大阪府堺市堺区",
+    lat: 34.5800,
+    lng: 135.4800,
+    distance: 0,
+    priceLevel: "cheap",
+    items: "木くず・紙くず・混合",
+    phone: "0000000000"
+  },
+  {
+    name: "近畿環境サービス",
+    region: "大阪",
+    address: "大阪府東大阪市",
+    lat: 34.7300,
+    lng: 135.5300,
+    distance: 0,
+    priceLevel: "normal",
+    items: "がれき・廃プラ・金属",
+    phone: "0000000000"
+  },
+  {
+    name: "奈良中央リサイクル",
+    region: "奈良",
+    address: "奈良県奈良市西九条町",
+    lat: 34.6851,
+    lng: 135.8050,
+    distance: 0,
+    priceLevel: "normal",
+    items: "木くず・がれき・コンクリートがら",
+    phone: "0000000000"
+  },
+  {
+    name: "大和産廃センター",
+    region: "奈良",
+    address: "奈良県大和郡山市",
+    lat: 34.6520,
+    lng: 135.7870,
+    distance: 0,
+    priceLevel: "cheap",
+    items: "混合廃棄物・木くず・金属くず",
+    phone: "0000000000"
+  },
+  {
+    name: "橿原クリーン工業",
+    region: "奈良",
+    address: "奈良県橿原市四条町",
+    lat: 34.5030,
+    lng: 135.7950,
+    distance: 0,
+    priceLevel: "normal",
+    items: "がれき・アスファルトがら・石",
+    phone: "0000000000"
+  },
   {
     name: "光リサイクルセンター",
     region: "奈良",
@@ -956,7 +1045,18 @@ const facilities = [
     distance: 0,
     priceLevel: "normal",
     items: "コンクリートがら・アスファルトがら・石",
-    phone: "0745651600"
+    phone: "0000000000"
+  },
+  {
+    name: "南和環境プラント",
+    region: "奈良",
+    address: "奈良県吉野郡大淀町",
+    lat: 34.3850,
+    lng: 135.7920,
+    distance: 0,
+    priceLevel: "cheap",
+    items: "木くず・廃プラ・混合廃棄物",
+    phone: "0000000000"
   }
 ];
 
