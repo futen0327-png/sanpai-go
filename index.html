@@ -353,6 +353,25 @@ body {
   white-space: nowrap;
 }
 
+/* 地図拡大時：1位カードの施設名を1行コンパクト表示 */
+body.map-expanded .top-card .card-name {
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-wrap: nowrap;
+}
+
+/* 地図拡大時：no1-badgeを名前行では非表示 */
+body.map-expanded .top-card .card-name .no1-badge {
+  display: none;
+}
+
+/* 地図拡大時：no1-badgeをcard-meta行に表示 */
+body.map-expanded .top-card .card-meta .no1-badge {
+  display: inline-flex;
+}
+
 /* 前回1位カードのほんのり残留スタイル */
 .card.prev-top {
   background: #FFFDE7;
@@ -1022,11 +1041,12 @@ function renderCard(f, num, isFeatured) {
     <div class="card-body">
       <div class="card-name">
         <span class="card-num">${num}</span>${f.name}
-      ${isFeatured ? '<span class="no1-badge">🏆 このエリアで一番近い</span>' : '<span class="top-badge">今すぐ行ける可能性高い</span>'}
+      ${isFeatured ? '<span class="no1-badge">🏆 一番近い</span>' : '<span class="top-badge">今すぐ行ける可能性高い</span>'}
       </div>
       <div class="card-meta">
         <span class="card-distance">📍 ${f.distance}km</span>
         <span class="price-badge ${price.cls}">${price.label}</span>
+        ${isFeatured ? '<span class="no1-badge" style="display:none;">🏆 一番近い</span>' : ''}
       </div>
       <div class="card-items">受入品目：${f.items}</div>
       <div class="call-hint">空いてるかだけでもOK</div>
