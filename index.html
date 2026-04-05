@@ -484,7 +484,8 @@ body.map-expanded .logo-banner {
 /* 拡大時：地図をflex比率で拡大（heightはautoに） */
 body.map-expanded #map {
   flex-grow: 8;
-  height: auto;
+  flex-shrink: 1;
+  height: 0;
 }
 
 /* 地図ラッパー（閉じるボタン配置用） */
