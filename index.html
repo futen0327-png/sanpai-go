@@ -468,68 +468,6 @@ body {
   }
 }
 
-/* ── 地図拡大機能 ── */
-
-/* 検索エリアのスライドアニメ */
-.logo-banner {
-  transition: transform 0.25s ease, opacity 0.25s ease;
-}
-body.map-expanded .logo-banner {
-  transform: translateY(-100%);
-  opacity: 0;
-  pointer-events: none;
-  position: relative;
-  z-index: 0;
-}
-
-/* 地図拡大 */
-#map {
-  transition: height 0.25s ease;
-}
-body.map-expanded #map {
-  height: 70vh;
-}
-
-/* 拡大時のスクロール抑制 */
-body.map-expanded .list-wrap {
-  overflow: hidden;
-}
-
-/* 閉じるボタン */
-#map-close-btn {
-  display: none;
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  z-index: 1000;
-  width: 32px;
-  height: 32px;
-  background: rgba(255,255,255,0.92);
-  border: none;
-  border-radius: 50%;
-  font-size: 18px;
-  line-height: 32px;
-  text-align: center;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-}
-body.map-expanded #map-close-btn {
-  display: block;
-}
-
-/* 地図ラッパー（閉じるボタン配置用） */
-#map-wrap {
-  position: relative;
-  flex-shrink: 0;
-}
-
-/* 拡大時のピンを少し大きく */
-body.map-expanded .leaflet-marker-icon div {
-  width: 34px !important;
-  height: 34px !important;
-  font-size: 16px !important;
-}
-
 /* ホーム追加案内ポップアップ */
 .modal-overlay {
   display: none;
@@ -797,10 +735,7 @@ body.map-expanded .leaflet-marker-icon div {
 </div>
 
 <!-- 地図 -->
-<div id="map-wrap">
-  <div id="map"></div>
-  <button id="map-close-btn">✕</button>
-</div>
+<div id="map"></div>
 
 <!-- 一覧 -->
 <div class="list-wrap">
@@ -1262,37 +1197,6 @@ clearBtn.addEventListener('click', () => {
 });
 
 categorySelect.addEventListener('change', applyFilters);
-
-// ── 地図タップ拡大機能 ──
-let _mapExpanded = false;
-
-function expandMap() {
-  _mapExpanded = true;
-  document.body.classList.add('map-expanded');
-  // 地図サイズ変更後にLeafletに再計算させる
-  setTimeout(() => map.invalidateSize(), 260);
-}
-
-function collapseMap() {
-  _mapExpanded = false;
-  document.body.classList.remove('map-expanded');
-  setTimeout(() => map.invalidateSize(), 260);
-}
-
-// 地図タップでON／再タップでOFF
-map.on('click', () => {
-  if (_mapExpanded) {
-    collapseMap();
-  } else {
-    expandMap();
-  }
-});
-
-// ✕ボタンでOFF
-document.getElementById('map-close-btn').addEventListener('click', (e) => {
-  e.stopPropagation();
-  collapseMap();
-});
 
 // 地図移動終了トリガー（moveend = 指を離した瞬間）
 // プログラム側からの移動（setView・fitBounds）は無視する
