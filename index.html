@@ -73,6 +73,12 @@ body {
   padding: 0 10px 44px;
 }
 
+.list-label-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 6px;
+}
 .list-label {
   padding: 4px 6px;
   font-size: 12px;
@@ -94,6 +100,22 @@ body {
 }
 .list-label.flash {
   animation: labelFlash 0.8s ease forwards;
+}
+
+/* 一発起動ボタン */
+#addHomeInlineBtn {
+  display: none;
+  background: #1c6ea8;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 10px;
+  height: 26px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* カード */
@@ -845,7 +867,10 @@ body.map-expanded #map-close-btn {
 
 <!-- 一覧 -->
 <div class="list-wrap">
-  <div class="list-label" id="listLabel">📍 このエリア内でおすすめ順</div>
+  <div class="list-label-wrap">
+    <div class="list-label" id="listLabel">📍 このエリア内でおすすめ順</div>
+    <button id="addHomeInlineBtn">一発起動</button>
+  </div>
   <div id="list"></div>
 </div>
 
@@ -853,13 +878,6 @@ body.map-expanded #map-close-btn {
 <div class="footer-note" style="display:none;"></div>
 <div class="footer-copy">© さんぱいGO <a href="info.html">利用案内 / 運営情報</a></div>
 
-<!-- ホーム追加固定ボタン -->
-<div id="addHomeBar" style="display:none;position:fixed;bottom:10px;left:12px;right:12px;z-index:9000;background:#1c6ea8;padding:8px 14px;text-align:center;border-radius:10px;box-shadow:0 3px 10px rgba(0,0,0,0.25);">
-  <button id="addHomeBtn" style="background:none;border:none;color:white;font-size:13px;font-weight:bold;cursor:pointer;width:100%;">
-    📱 次から一発で開けます &nbsp;[追加する]
-  </button>
-  <button id="addHomeClose" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,0.6);font-size:18px;cursor:pointer;line-height:1;">×</button>
-</div>
 
 <!-- ホーム追加説明ポップアップ -->
 <div class="modal-overlay" id="addHomePopup">
@@ -1479,18 +1497,13 @@ if ('serviceWorker' in navigator) {
   }
 }
 
-// ホーム追加バー制御
+// 一発起動ボタン制御
 (function() {
   if (localStorage.getItem('addHomeBarClosed')) return;
-  const bar = document.getElementById('addHomeBar');
-  bar.style.display = 'block';
+  document.getElementById('addHomeInlineBtn').style.display = 'inline-block';
 
-  document.getElementById('addHomeBtn').addEventListener('click', () => {
+document.getElementById('addHomeInlineBtn').addEventListener('click', () => {
     document.getElementById('addHomePopup').classList.add('active');
-  });
-  document.getElementById('addHomeClose').addEventListener('click', () => {
-    bar.style.display = 'none';
-    localStorage.setItem('addHomeBarClosed', '1');
   });
   document.getElementById('closeAddHomePopup').addEventListener('click', () => {
     document.getElementById('addHomePopup').classList.remove('active');
@@ -1500,11 +1513,8 @@ if ('serviceWorker' in navigator) {
   });
 })();
 
-// 電話・LINE後にホーム追加案内を表示する関数
-function promptAddHome() {
-  if (localStorage.getItem('addHomeBarClosed')) return;
-  document.getElementById('addHomeBar').style.display = 'block';
-}
+// 電話・LINE後にホーム追加案内を表示する関数（バー削除のため無効化）
+function promptAddHome() {}
 
 </script>
 </body>
