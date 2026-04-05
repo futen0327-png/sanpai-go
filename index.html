@@ -1316,12 +1316,12 @@ document.getElementById('surveySubmit').addEventListener('click', () => {
     feedback[keys[i]] = active ? active.querySelector('.s-symbol').textContent + active.querySelector('.s-word').textContent : '';
   });
   localStorage.setItem('sanpai_feedback', JSON.stringify(feedback));
-  localStorage.setItem('sanpai_survey_date', new Date().toLocaleDateString('ja-JP'));
+  // localStorage.setItem('sanpai_survey_date', new Date().toLocaleDateString('ja-JP')); // 開発中は無効化
   document.getElementById('surveyPopup').classList.remove('active');
 });
 document.getElementById('surveyPopup').addEventListener('click', function(e) {
   if (e.target === this) {
-    localStorage.setItem('sanpai_survey_date', new Date().toLocaleDateString('ja-JP'));
+    // localStorage.setItem('sanpai_survey_date', new Date().toLocaleDateString('ja-JP')); // 開発中は無効化
     this.classList.remove('active');
   }
 });
@@ -1331,9 +1331,9 @@ document.addEventListener('visibilitychange', function() {
   if (document.visibilityState !== 'visible') return;
   if (!sessionStorage.getItem('sanpai_called')) return;
 
-  // 1日1回チェック
-  const today = new Date().toLocaleDateString('ja-JP');
-  if (localStorage.getItem('sanpai_survey_date') === today) return;
+  // 1日1回チェック（開発中は無効化）
+  // const today = new Date().toLocaleDateString('ja-JP');
+  // if (localStorage.getItem('sanpai_survey_date') === today) return;
 
   // フラグをリセットして1秒後にポップアップ表示
   sessionStorage.removeItem('sanpai_called');
