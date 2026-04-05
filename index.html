@@ -930,6 +930,7 @@ if (navigator.geolocation) {
 
 // アクティブマーカー管理
 let activeMarkers = [];
+let _suppressMoveend = false;
 
 // カードHTML生成（全カード共通構造）
 function renderCard(f, num, isFeatured) {
@@ -1013,6 +1014,7 @@ function renderList(data, skipFitBounds = false) {
 
     card.dataset.facilityId = i;
     card.addEventListener('click', () => {
+      _suppressMoveend = true;
       map.setView([f.lat, f.lng], 15);
       marker.openPopup();
     });
@@ -1047,6 +1049,7 @@ function renderList(data, skipFitBounds = false) {
 
   // fitBounds で自動ズーム（地図連動時はスキップ）
   if (!skipFitBounds) {
+    _suppressMoveend = true;
     const bounds = L.latLngBounds(data.map(f => [f.lat, f.lng]));
     map.fitBounds(bounds, { padding: [40, 40] });
   }
@@ -1144,7 +1147,14 @@ clearBtn.addEventListener('click', () => {
 categorySelect.addEventListener('change', applyFilters);
 
 // 地図移動終了トリガー（moveend = 指を離した瞬間）
-map.on('moveend', updateByMapBounds);
+// プログラム側からの移動（setView・fitBounds）は無視する
+map.on('moveend', () => {
+  if (_suppressMoveend) {
+    _suppressMoveend = false;
+    return;
+  }
+  updateByMapBounds();
+});
 
 // アンケートポップアップ制御
 function surveySelect(btn) {
