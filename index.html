@@ -315,6 +315,40 @@ body {
 .top-card .call-btn {
   background: #FFF9C4 !important;
 }
+/* エリア更新トースト */
+#area-toast {
+  position: fixed;
+  top: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  font-size: 13px;
+  padding: 8px 18px;
+  border-radius: 20px;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+}
+#area-toast.show {
+  opacity: 1;
+}
+
+/* 1位バッジ（地図連動用） */
+.no1-badge {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: #FFD700;
+  color: #333;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
 /* featured以外では非表示 */
 .card:not(.top-card) .call-hint,
 .card:not(.top-card) .top-badge {
@@ -717,6 +751,8 @@ body {
 <!-- トースト通知 -->
 <div class="toast" id="toast"></div>
 
+<div id="area-toast">このエリアのおすすめを表示</div>
+
 <!-- アンケートポップアップ -->
 <div class="modal-overlay" id="surveyPopup">
   <div class="modal-box">
@@ -898,11 +934,14 @@ let activeMarkers = [];
 // カードHTML生成（全カード共通構造）
 function renderCard(f, num, isFeatured) {
   const price = priceMap[f.priceLevel];
-  const callLabel = isTestMode ? '今すぐ電話する（テスト中）' : '今すぐ電話する';
+  const callLabel = isTestMode
+    ? (isFeatured ? '🔥 今すぐ電話（ここが一番近い）（テスト中）' : '今すぐ電話する（テスト中）')
+    : (isFeatured ? '🔥 今すぐ電話（ここが一番近い）' : '今すぐ電話する');
   return `
     <div class="card-body">
       <div class="card-name">
-        <span class="card-num">${num}</span>${f.name}<span class="top-badge">今すぐ行ける可能性高い</span>
+        <span class="card-num">${num}</span>${f.name}
+      ${isFeatured ? '<span class="no1-badge">🏆 このエリアNo.1</span>' : '<span class="top-badge">今すぐ行ける可能性高い</span>'}
       </div>
       <div class="card-meta">
         <span class="card-distance">📍 ${f.distance}km</span>
@@ -972,9 +1011,18 @@ function renderList(data) {
     card.className = 'card' + (isTop ? ' top-card' : '');
     card.innerHTML = renderCard(f, num, isTop);
 
+    card.dataset.facilityId = i;
     card.addEventListener('click', () => {
       map.setView([f.lat, f.lng], 15);
       marker.openPopup();
+    });
+
+    // マーカータップ → カードフォーカス
+    marker.on('click', () => {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      card.style.transition = 'box-shadow 0.3s';
+      card.style.boxShadow = '0 0 0 3px #FFD700';
+      setTimeout(() => { card.style.boxShadow = ''; }, 1200);
     });
 
     listEl.appendChild(card);
@@ -1000,6 +1048,50 @@ function renderList(data) {
   // fitBounds で自動ズーム
   const bounds = L.latLngBounds(data.map(f => [f.lat, f.lng]));
   map.fitBounds(bounds, { padding: [40, 40] });
+}
+
+// 2点間の距離計算（km）ハversine式
+function calcDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2)
+          + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180)
+          * Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// エリアトースト表示
+function showAreaToast() {
+  const toast = document.getElementById('area-toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 600);
+}
+
+// 地図範囲内の施設をランキングしてrenderListに渡す
+function updateByMapBounds() {
+  const bounds = map.getBounds();
+  const center = map.getCenter();
+
+  // 表示範囲内に絞り込み
+  let inView = facilities.filter(f => bounds.contains([f.lat, f.lng]));
+
+  // 件数制限（最大10件）
+  if (inView.length === 0) return;
+
+  // 距離スコアで並び替え（近いほど高評価）
+  inView = inView
+    .map(f => {
+      const dist = calcDistance(center.lat, center.lng, f.lat, f.lng);
+      const priceBonus = f.priceLevel === 'cheap' ? 0.5 : 0;
+      return { ...f, _score: dist - priceBonus, _dist: dist };
+    })
+    .sort((a, b) => a._score - b._score)
+    .slice(0, 10)
+    .map(({ _score, _dist, ...f }) => f);
+
+  showAreaToast();
+  renderList(inView);
 }
 
 // 複合フィルター
@@ -1050,6 +1142,15 @@ clearBtn.addEventListener('click', () => {
 });
 
 categorySelect.addEventListener('change', applyFilters);
+
+// 地図移動終了トリガー（ガチャガチャ防止）
+map.on('moveend', () => {
+  // フィルター入力中は地図連動しない
+  const keyword = document.getElementById('searchInput').value.trim();
+  const category = document.getElementById('categorySelect').value;
+  if (keyword || category) return;
+  updateByMapBounds();
+});
 
 // アンケートポップアップ制御
 function surveySelect(btn) {
