@@ -743,47 +743,23 @@ body.map-expanded #map-close-btn {
   color: #444;
 }
 
-/* 選択済み：◎ スカイブルー */
-.survey-btn.selected-good {
-  border-color: #4DA6FF;
-  background: #e8f4ff;
+/* 選択済み：全記号共通 オレンジ塗りつぶし＋白文字 */
+.survey-btn.selected-good,
+.survey-btn.selected-normal,
+.survey-btn.selected-bad,
+.survey-btn.selected-unknown {
+  border-color: #FF8C00;
+  background: #FF8C00;
 }
 .survey-btn.selected-good .survey-icon,
-.survey-btn.selected-good .survey-text {
-  color: #4DA6FF;
-  font-weight: bold;
-}
-
-/* 選択済み：○ ウォームグレー */
-.survey-btn.selected-normal {
-  border-color: #A0A0A0;
-  background: #f5f5f5;
-}
+.survey-btn.selected-good .survey-text,
 .survey-btn.selected-normal .survey-icon,
-.survey-btn.selected-normal .survey-text {
-  color: #A0A0A0;
-  font-weight: bold;
-}
-
-/* 選択済み：× コーラルピンク */
-.survey-btn.selected-bad {
-  border-color: #F08080;
-  background: #fff0f0;
-}
+.survey-btn.selected-normal .survey-text,
 .survey-btn.selected-bad .survey-icon,
-.survey-btn.selected-bad .survey-text {
-  color: #F08080;
-  font-weight: bold;
-}
-
-/* 選択済み：－ ライトグレー */
-.survey-btn.selected-unknown {
-  border-color: #E0E0E0;
-  background: #f5f5f5;
-}
+.survey-btn.selected-bad .survey-text,
 .survey-btn.selected-unknown .survey-icon,
 .survey-btn.selected-unknown .survey-text {
-  color: #909090;
+  color: #ffffff;
   font-weight: bold;
 }
 
@@ -1010,7 +986,7 @@ body.map-expanded #map-close-btn {
           <span class="survey-icon">◎</span>
           <span class="survey-text">出た</span>
         </button>
-        <button class="survey-btn selected selected-normal" data-group="call" data-value="normal">
+        <button class="survey-btn" data-group="call" data-value="normal">
           <span class="survey-icon">○</span>
           <span class="survey-text">普通</span>
         </button>
@@ -1029,7 +1005,7 @@ body.map-expanded #map-close-btn {
           <span class="survey-icon">◎</span>
           <span class="survey-text">OK</span>
         </button>
-        <button class="survey-btn selected selected-normal" data-group="accept" data-value="normal">
+        <button class="survey-btn" data-group="accept" data-value="normal">
           <span class="survey-icon">○</span>
           <span class="survey-text">条件あり</span>
         </button>
@@ -1048,7 +1024,7 @@ body.map-expanded #map-close-btn {
           <span class="survey-icon">◎</span>
           <span class="survey-text">安い</span>
         </button>
-        <button class="survey-btn selected selected-normal" data-group="price" data-value="normal">
+        <button class="survey-btn" data-group="price" data-value="normal">
           <span class="survey-icon">○</span>
           <span class="survey-text">普通</span>
         </button>
@@ -1681,19 +1657,6 @@ document.getElementById('surveyModal').addEventListener('click', function(e) {
         b.classList.remove('selected', 'selected-good', 'selected-normal', 'selected-bad', 'selected-unknown');
       });
 
-      // デフォルト選択を設定
-      [
-        { group: 'call',   value: 'normal' },
-        { group: 'accept', value: 'normal' },
-        { group: 'price',  value: 'normal' },
-      ].forEach(function(def) {
-        const btn = document.querySelector(
-          `.survey-btn[data-group="${def.group}"][data-value="${def.value}"]`
-        );
-        if (btn) {
-          btn.classList.add('selected', 'selected-normal');
-        }
-      });
 
       // モーダル表示
       const modal = document.getElementById('surveyModal');
