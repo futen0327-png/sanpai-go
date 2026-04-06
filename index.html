@@ -743,14 +743,47 @@ body.map-expanded #map-close-btn {
   color: #444;
 }
 
-/* 選択済み状態 */
-.survey-btn.selected {
-  border-color: #1976d2;
-  background: #e3f0ff;
+/* 選択済み：◎ 緑 */
+.survey-btn.selected-good {
+  border-color: #388e3c;
+  background: #e8f5e9;
 }
-.survey-btn.selected .survey-icon,
-.survey-btn.selected .survey-text {
-  color: #1565c0;
+.survey-btn.selected-good .survey-icon,
+.survey-btn.selected-good .survey-text {
+  color: #2e7d32;
+  font-weight: bold;
+}
+
+/* 選択済み：○ 薄いオレンジ */
+.survey-btn.selected-normal {
+  border-color: #f57c00;
+  background: #fff3e0;
+}
+.survey-btn.selected-normal .survey-icon,
+.survey-btn.selected-normal .survey-text {
+  color: #e65100;
+  font-weight: bold;
+}
+
+/* 選択済み：× 赤 */
+.survey-btn.selected-bad {
+  border-color: #d32f2f;
+  background: #ffebee;
+}
+.survey-btn.selected-bad .survey-icon,
+.survey-btn.selected-bad .survey-text {
+  color: #c62828;
+  font-weight: bold;
+}
+
+/* 選択済み：－ 薄いグレー */
+.survey-btn.selected-unknown {
+  border-color: #9e9e9e;
+  background: #f5f5f5;
+}
+.survey-btn.selected-unknown .survey-icon,
+.survey-btn.selected-unknown .survey-text {
+  color: #616161;
   font-weight: bold;
 }
 
@@ -793,21 +826,25 @@ body.map-expanded #map-close-btn {
   background: #1251a3;
 }
 
-/* 金額セクション：4ボタン対応 */
-.survey-options-4 {
-  gap: 5px;
+/* 不明ボタン：横幅いっぱい・低め */
+.survey-options-unknown {
+  margin-top: 6px;
 }
 
-.survey-btn-sm {
-  padding: 8px 2px;
+.survey-btn-unknown {
+  width: 100%;
+  flex-direction: row;
+  gap: 8px;
+  padding: 8px 12px;
+  justify-content: center;
 }
 
-.survey-btn-sm .survey-icon {
+.survey-btn-unknown .survey-icon {
   font-size: 1rem;
 }
 
-.survey-btn-sm .survey-text {
-  font-size: 0.72rem;
+.survey-btn-unknown .survey-text {
+  font-size: 0.85rem;
 }
 /* ボタン上書き（強調リセット） */
 .btn-row {
@@ -957,7 +994,6 @@ body.map-expanded #map-close-btn {
   <div class="survey-content">
 
     <h2 class="survey-title">電話どうでした？</h2>
-    <p class="survey-subtitle">（30秒で終わります）</p>
 
     <!-- ① 電話どうでした？ -->
     <div class="survey-section">
@@ -967,7 +1003,7 @@ body.map-expanded #map-close-btn {
           <span class="survey-icon">◎</span>
           <span class="survey-text">出た</span>
         </button>
-        <button class="survey-btn" data-group="call" data-value="normal">
+        <button class="survey-btn selected selected-normal" data-group="call" data-value="normal">
           <span class="survey-icon">○</span>
           <span class="survey-text">普通</span>
         </button>
@@ -986,7 +1022,7 @@ body.map-expanded #map-close-btn {
           <span class="survey-icon">◎</span>
           <span class="survey-text">OK</span>
         </button>
-        <button class="survey-btn" data-group="accept" data-value="normal">
+        <button class="survey-btn selected selected-normal" data-group="accept" data-value="normal">
           <span class="survey-icon">○</span>
           <span class="survey-text">条件あり</span>
         </button>
@@ -1000,20 +1036,22 @@ body.map-expanded #map-close-btn {
     <!-- ③ 金額どうでした？ -->
     <div class="survey-section">
       <p class="survey-label">③ 金額どうでした？</p>
-      <div class="survey-options survey-options-4">
-        <button class="survey-btn survey-btn-sm" data-group="price" data-value="good">
+      <div class="survey-options">
+        <button class="survey-btn" data-group="price" data-value="good">
           <span class="survey-icon">◎</span>
           <span class="survey-text">安い</span>
         </button>
-        <button class="survey-btn survey-btn-sm" data-group="price" data-value="normal">
+        <button class="survey-btn selected selected-normal" data-group="price" data-value="normal">
           <span class="survey-icon">○</span>
           <span class="survey-text">普通</span>
         </button>
-        <button class="survey-btn survey-btn-sm" data-group="price" data-value="bad">
+        <button class="survey-btn" data-group="price" data-value="bad">
           <span class="survey-icon">×</span>
           <span class="survey-text">高い</span>
         </button>
-        <button class="survey-btn survey-btn-sm" data-group="price" data-value="unknown">
+      </div>
+      <div class="survey-options survey-options-unknown">
+        <button class="survey-btn survey-btn-unknown" data-group="price" data-value="unknown">
           <span class="survey-icon">－</span>
           <span class="survey-text">不明</span>
         </button>
@@ -1552,11 +1590,19 @@ function openSurveyModal() {
 document.querySelectorAll('.survey-btn').forEach(btn => {
   btn.addEventListener('click', function() {
     const group = this.dataset.group;
-    // 同グループの選択を解除
-    document.querySelectorAll(`.survey-btn[data-group="${group}"]`)
-      .forEach(b => b.classList.remove('selected'));
-    // クリックしたボタンを選択
+    const value = this.dataset.value;
+
+    // 同グループの選択クラスを全解除
+    document.querySelectorAll(`.survey-btn[data-group="${group}"]`).forEach(b => {
+      b.classList.remove('selected', 'selected-good', 'selected-normal', 'selected-bad', 'selected-unknown');
+    });
+
+    // 値に応じたクラスを付与
     this.classList.add('selected');
+    if (value === 'good')    this.classList.add('selected-good');
+    if (value === 'normal')  this.classList.add('selected-normal');
+    if (value === 'bad')     this.classList.add('selected-bad');
+    if (value === 'unknown') this.classList.add('selected-unknown');
   });
 });
 
@@ -1599,17 +1645,79 @@ document.getElementById('surveyModal').addEventListener('click', function(e) {
   }
 });
 
-// アンケートモーダル：復帰検知トリガー（1日1回）
-document.addEventListener('visibilitychange', function() {
-  if (document.visibilityState !== 'visible') return;
-  if (!sessionStorage.getItem('sanpai_called')) return;
+// ── アンケートポップアップ：ページ復帰検知ロジック ──
+(function() {
 
-  // フラグをリセットして1秒後にモーダル表示
-  sessionStorage.removeItem('sanpai_called');
-  setTimeout(() => {
-    openSurveyModal();
-  }, 1000);
-});
+  // 復帰後にポップアップを表示する関数
+  function tryShowSurvey() {
+    const callFlag   = localStorage.getItem('callFlag');
+    const leaveTime  = parseInt(localStorage.getItem('callLeaveTime') || '0', 10);
+    const justShown  = localStorage.getItem('surveyJustShown');
+    const noShowDate = localStorage.getItem('surveyNoShowDate');
+    const today      = new Date().toISOString().slice(0, 10);
+    const elapsed    = Date.now() - leaveTime;
+
+    // 表示条件を全チェック
+    if (callFlag !== 'true')  return; // 電話フラグなし
+    if (elapsed < 3000)       return; // 離脱3秒未満 → 誤爆防止
+    if (justShown === 'true') return; // 直前に表示済み
+    if (noShowDate === today)  return; // 今日はもう表示しない
+
+    // 全条件クリア → 2秒後に表示
+    setTimeout(function() {
+      // チェックボックスをリセット
+      const cb = document.getElementById('noShowToday');
+      if (cb) cb.checked = false;
+
+      // ボタン選択状態をリセットしてデフォルトを再適用
+      document.querySelectorAll('.survey-btn').forEach(function(b) {
+        b.classList.remove('selected', 'selected-good', 'selected-normal', 'selected-bad', 'selected-unknown');
+      });
+
+      // デフォルト選択を設定
+      [
+        { group: 'call',   value: 'normal' },
+        { group: 'accept', value: 'normal' },
+        { group: 'price',  value: 'normal' },
+      ].forEach(function(def) {
+        const btn = document.querySelector(
+          `.survey-btn[data-group="${def.group}"][data-value="${def.value}"]`
+        );
+        if (btn) {
+          btn.classList.add('selected', 'selected-normal');
+        }
+      });
+
+      // モーダル表示
+      const modal = document.getElementById('surveyModal');
+      if (modal) modal.style.display = 'flex';
+
+      // フラグ更新
+      localStorage.setItem('callFlag', 'false');
+      localStorage.setItem('surveyJustShown', 'true');
+    }, 2000);
+  }
+
+  // visibilitychange（タブ切り替え・アプリ切り替えから戻る）
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') {
+      tryShowSurvey();
+    }
+  });
+
+  // pageshow（ブラウザの戻るボタン対応）
+  window.addEventListener('pageshow', function(e) {
+    if (e.persisted) {
+      tryShowSurvey();
+    }
+  });
+
+  // focus（PCブラウザのウィンドウ切り替え対応）
+  window.addEventListener('focus', function() {
+    tryShowSurvey();
+  });
+
+})();
 
 
 // 初期表示
