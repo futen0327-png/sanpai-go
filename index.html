@@ -828,6 +828,45 @@ body.map-expanded #map-close-btn {
 .survey-btn-unknown .survey-text {
   font-size: 0.78rem;
 }
+
+/* アンケート送信フィードバック トースト */
+.survey-toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 10000;
+}
+
+.survey-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* 送信ボタン：ローディング状態 */
+.survey-submit-btn:disabled {
+  background: #90bce8;
+  cursor: not-allowed;
+}
+
+/* 未回答警告テキスト */
+.survey-warning {
+  font-size: 0.8rem;
+  color: #e53935;
+  margin: 0 0 8px;
+  min-height: 1.2em;
+  text-align: center;
+}
+
 /* ボタン上書き（強調リセット） */
 .btn-row {
   display: flex !important;
@@ -971,6 +1010,9 @@ body.map-expanded #map-close-btn {
 
 <div id="area-toast">表示範囲が変わりました</div>
 
+<!-- アンケート送信フィードバック トースト -->
+<div id="surveyToast" class="survey-toast">ご協力ありがとうございました。</div>
+
 <!-- アンケートモーダル -->
 <div id="surveyModal" class="survey-modal" style="display:none;">
   <div class="survey-content">
@@ -1048,6 +1090,9 @@ body.map-expanded #map-close-btn {
         <span>今日はもう表示しない</span>
       </label>
     </div>
+
+    <!-- 未回答警告 -->
+    <p id="surveyWarning" class="survey-warning"></p>
 
     <!-- 送信ボタン -->
     <button id="surveySubmit" class="survey-submit-btn">送信</button>
@@ -1591,34 +1636,81 @@ document.querySelectorAll('.survey-btn').forEach(btn => {
 
 // ── 送信ボタン処理 ──
 document.getElementById('surveySubmit').addEventListener('click', function() {
-  // 各グループの選択値を取得
-  const getValue = (group) => {
-    const sel = document.querySelector(`.survey-btn.selected[data-group="${group}"]`);
-    return sel ? sel.dataset.value : null;
-  };
+  const btn = this;
+  const warning = document.getElementById('surveyWarning');
 
-  const result = {
-    call:   getValue('call'),
-    accept: getValue('accept'),
-    price:  getValue('price'),
-  };
+  // ── ① 未回答チェック ──
+  const groups = ['call', 'accept', 'price'];
+  const allAnswered = groups.every(function(group) {
+    return document.querySelector(`.survey-btn.selected-good[data-group="${group}"],
+      .survey-btn.selected-normal[data-group="${group}"],
+      .survey-btn.selected-bad[data-group="${group}"],
+      .survey-btn.selected-unknown[data-group="${group}"]`);
+  });
 
-  // 「今日はもう表示しない」チェック処理
-  const noShow = document.getElementById('noShowToday').checked;
-  if (noShow) {
-    const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
-    localStorage.setItem('surveyNoShowDate', today);
+  if (!allAnswered) {
+    warning.textContent = '未選択の項目があります';
+    setTimeout(function() { warning.textContent = ''; }, 3000);
+    return;
   }
 
-  // 既存の送信処理
-  localStorage.setItem('sanpai_feedback', JSON.stringify(result));
-  // localStorage.setItem('sanpai_survey_date', new Date().toLocaleDateString('ja-JP')); // 開発中は無効化
+  // 警告クリア
+  warning.textContent = '';
 
-  // 次回の表示を許可するためリセット
-  localStorage.setItem('surveyJustShown', 'false');
+  // ── ② ボタンをローディング状態に ──
+  btn.disabled = true;
+  btn.textContent = '送信中...';
 
-  console.log('アンケート送信:', result, 'noShow:', noShow);
-  document.getElementById('surveyModal').style.display = 'none';
+  // ── ③ 送信処理（0.5秒後に実行） ──
+  setTimeout(function() {
+
+    // 各グループの選択値を取得
+    const getValue = function(group) {
+      const sel = document.querySelector(
+        `.survey-btn[data-group="${group}"].selected-good,
+         .survey-btn[data-group="${group}"].selected-normal,
+         .survey-btn[data-group="${group}"].selected-bad,
+         .survey-btn[data-group="${group}"].selected-unknown`
+      );
+      return sel ? sel.dataset.value : null;
+    };
+
+    const result = {
+      call:   getValue('call'),
+      accept: getValue('accept'),
+      price:  getValue('price'),
+    };
+
+    // 「今日はもう表示しない」チェック処理
+    const noShow = document.getElementById('noShowToday').checked;
+    if (noShow) {
+      const today = new Date().toISOString().slice(0, 10);
+      localStorage.setItem('surveyNoShowDate', today);
+    }
+
+    // 既存の送信処理
+    localStorage.setItem('sanpai_feedback', JSON.stringify(result));
+
+    // localStorageのフラグをリセット
+    localStorage.setItem('surveyJustShown', 'false');
+
+    // ── ④ モーダルを閉じる ──
+    document.getElementById('surveyModal').style.display = 'none';
+
+    // ボタンを元に戻す
+    btn.disabled = false;
+    btn.textContent = '送信';
+
+    // ── ⑤ トースト表示 ──
+    const toast = document.getElementById('surveyToast');
+    toast.classList.add('show');
+    setTimeout(function() {
+      toast.classList.remove('show');
+    }, 2500);
+
+    console.log('アンケート送信:', result, 'noShow:', noShow);
+
+  }, 500);
 });
 
 // 背景クリックで閉じる
