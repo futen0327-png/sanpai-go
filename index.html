@@ -743,13 +743,13 @@ body.map-expanded #map-close-btn {
   color: #444;
 }
 
-/* 選択済み：全記号共通 オレンジ塗りつぶし＋白文字 */
+/* 選択済み：全記号共通 薄オレンジ透明感＋オレンジ文字・枠 */
 .survey-btn.selected-good,
 .survey-btn.selected-normal,
 .survey-btn.selected-bad,
 .survey-btn.selected-unknown {
-  border-color: #FF8C00;
-  background: #FF8C00;
+  border-color: #FFA040;
+  background: rgba(255, 160, 64, 0.15);
 }
 .survey-btn.selected-good .survey-icon,
 .survey-btn.selected-good .survey-text,
@@ -759,7 +759,7 @@ body.map-expanded #map-close-btn {
 .survey-btn.selected-bad .survey-text,
 .survey-btn.selected-unknown .survey-icon,
 .survey-btn.selected-unknown .survey-text {
-  color: #ffffff;
+  color: #FFA040;
   font-weight: bold;
 }
 
