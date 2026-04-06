@@ -792,6 +792,23 @@ body.map-expanded #map-close-btn {
 .survey-submit-btn:active {
   background: #1251a3;
 }
+
+/* 金額セクション：4ボタン対応 */
+.survey-options-4 {
+  gap: 5px;
+}
+
+.survey-btn-sm {
+  padding: 8px 2px;
+}
+
+.survey-btn-sm .survey-icon {
+  font-size: 1rem;
+}
+
+.survey-btn-sm .survey-text {
+  font-size: 0.72rem;
+}
 /* ボタン上書き（強調リセット） */
 .btn-row {
   display: flex !important;
@@ -983,18 +1000,22 @@ body.map-expanded #map-close-btn {
     <!-- ③ 金額どうでした？ -->
     <div class="survey-section">
       <p class="survey-label">③ 金額どうでした？</p>
-      <div class="survey-options">
-        <button class="survey-btn" data-group="price" data-value="good">
+      <div class="survey-options survey-options-4">
+        <button class="survey-btn survey-btn-sm" data-group="price" data-value="good">
           <span class="survey-icon">◎</span>
           <span class="survey-text">安い</span>
         </button>
-        <button class="survey-btn" data-group="price" data-value="normal">
+        <button class="survey-btn survey-btn-sm" data-group="price" data-value="normal">
           <span class="survey-icon">○</span>
           <span class="survey-text">普通</span>
         </button>
-        <button class="survey-btn" data-group="price" data-value="bad">
+        <button class="survey-btn survey-btn-sm" data-group="price" data-value="bad">
           <span class="survey-icon">×</span>
           <span class="survey-text">高い</span>
+        </button>
+        <button class="survey-btn survey-btn-sm" data-group="price" data-value="unknown">
+          <span class="survey-icon">－</span>
+          <span class="survey-text">不明</span>
         </button>
       </div>
     </div>
@@ -1328,6 +1349,10 @@ function renderList(data, skipFitBounds = false) {
       promptAddHome();
       // 電話ボタンを押したフラグを立てる
       sessionStorage.setItem('sanpai_called', '1');
+      // ── アンケート表示用フラグを記録（電話ボタン押下時）──
+      localStorage.setItem('callFlag', 'true');
+      localStorage.setItem('callLeaveTime', Date.now().toString());
+      localStorage.setItem('surveyJustShown', 'false');
     });
   });
 
@@ -1559,6 +1584,9 @@ document.getElementById('surveySubmit').addEventListener('click', function() {
   // 既存の送信処理
   localStorage.setItem('sanpai_feedback', JSON.stringify(result));
   // localStorage.setItem('sanpai_survey_date', new Date().toLocaleDateString('ja-JP')); // 開発中は無効化
+
+  // 次回の表示を許可するためリセット
+  localStorage.setItem('surveyJustShown', 'false');
 
   console.log('アンケート送信:', result, 'noShow:', noShow);
   document.getElementById('surveyModal').style.display = 'none';
