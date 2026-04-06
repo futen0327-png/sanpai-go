@@ -667,94 +667,130 @@ body.map-expanded #map-close-btn {
   background: #f5f5f5;
 }
 
-/* アンケートポップアップ */
-.survey-section-label {
-  font-size: 12px;
-  font-weight: bold;
-  color: #777;
-  margin: 0 0 5px 2px;
-}
-.survey-btn-group {
+/* ── アンケートモーダル共通 ── */
+.survey-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
   display: flex;
-  gap: 5px;
-  margin-bottom: 12px;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
 }
-.survey-toggle-btn {
-  flex: 1;
-  padding: 8px 4px 7px;
-  border-radius: 8px;
-  border-top: 1px solid #e0e0e0;
-  border-left: 1px solid #d0d0d0;
-  border-right: 1px solid #b8b8b8;
-  border-bottom: 3px solid #b8b8b8;
-  background: #f5f5f5;
-  color: #aaa;
-  font-size: 11px;
-  font-weight: bold;
-  cursor: pointer;
+
+.survey-content {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 20px 20px;
+  width: 90%;
+  max-width: 360px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
   text-align: center;
-  transition: all 0.1s;
-  transform: translateY(0);
-  line-height: 1.4;
 }
-.survey-toggle-btn .s-symbol {
-  display: block;
-  font-size: 15px;
-  line-height: 1.2;
-}
-.survey-toggle-btn .s-word {
-  display: block;
-  font-size: 11px;
-  margin-top: 2px;
-}
-.survey-toggle-btn:active {
-  border-bottom-width: 1px;
-  transform: translateY(2px);
-}
-.survey-toggle-btn.s-good.active {
-  background: #f0faf0;
-  border-top-color: #c8e6c9;
-  border-left-color: #c8e6c9;
-  border-right-color: #81c784;
-  border-bottom-color: #81c784;
-  color: #388e3c;
-}
-.survey-toggle-btn.s-mid.active {
-  background: #e8f4fd !important;
-  border-top-color: #bbdefb !important;
-  border-left-color: #bbdefb !important;
-  border-right-color: #64b5f6 !important;
-  border-bottom-color: #64b5f6 !important;
-  color: #1565c0 !important;
-}
-.survey-toggle-btn.s-bad.active {
-  background: #fff5f5;
-  border-top-color: #ffcdd2;
-  border-left-color: #ffcdd2;
-  border-right-color: #e57373;
-  border-bottom-color: #e57373;
-  color: #d32f2f;
-}
-.survey-submit-btn {
-  display: block;
-  width: 100%;
-  padding: 12px;
-  background: #1565c0;
-  color: #fff;
-  border-top: 1px solid #1976d2;
-  border-left: 1px solid #1565c0;
-  border-right: 1px solid #0d47a1;
-  border-bottom: 3px solid #0d47a1;
-  border-radius: 8px;
-  font-size: 15px;
+
+.survey-title {
+  font-size: 1.2rem;
   font-weight: bold;
-  cursor: pointer;
-  transition: all 0.1s;
-  margin-top: 4px;
+  margin: 0 0 2px;
+  color: #222;
 }
+
+.survey-subtitle {
+  font-size: 0.8rem;
+  color: #888;
+  margin: 0 0 16px;
+}
+
+/* ── 各セクション ── */
+.survey-section {
+  margin-bottom: 14px;
+}
+
+.survey-label {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #333;
+  margin: 0 0 8px;
+  text-align: left;
+}
+
+.survey-options {
+  display: flex;
+  gap: 8px;
+}
+
+.survey-btn {
+  flex: 1;
+  padding: 10px 4px;
+  border: 1.5px solid #ccc;
+  border-radius: 10px;
+  background: #f9f9f9;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.survey-btn .survey-icon {
+  font-size: 1.1rem;
+  color: #555;
+}
+
+.survey-btn .survey-text {
+  font-size: 0.78rem;
+  color: #444;
+}
+
+/* 選択済み状態 */
+.survey-btn.selected {
+  border-color: #1976d2;
+  background: #e3f0ff;
+}
+.survey-btn.selected .survey-icon,
+.survey-btn.selected .survey-text {
+  color: #1565c0;
+  font-weight: bold;
+}
+
+/* ── チェックボックス ── */
+.survey-no-show {
+  margin: 16px 0 12px;
+  text-align: left;
+}
+
+.survey-no-show-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: #555;
+  cursor: pointer;
+}
+
+.survey-no-show-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #1976d2;
+  cursor: pointer;
+}
+
+/* ── 送信ボタン ── */
+.survey-submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: #1976d2;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
 .survey-submit-btn:active {
-  border-bottom-width: 1px;
-  transform: translateY(2px);
+  background: #1251a3;
 }
 /* ボタン上書き（強調リセット） */
 .btn-row {
@@ -899,40 +935,81 @@ body.map-expanded #map-close-btn {
 
 <div id="area-toast">表示範囲が変わりました</div>
 
-<!-- アンケートポップアップ -->
-<div class="modal-overlay" id="surveyPopup">
-  <div class="modal-box">
-    <div class="modal-title">電話どうでした？</div>
+<!-- アンケートモーダル -->
+<div id="surveyModal" class="survey-modal" style="display:none;">
+  <div class="survey-content">
 
-    <div class="survey-section-label">【全体】</div>
-    <div class="survey-btn-group">
-      <button class="survey-toggle-btn s-good" onclick="surveySelect(this)"><span class="s-symbol">◎</span><span class="s-word">良い</span></button>
-      <button class="survey-toggle-btn s-mid"  onclick="surveySelect(this)"><span class="s-symbol">○</span><span class="s-word">普通</span></button>
-      <button class="survey-toggle-btn s-bad"  onclick="surveySelect(this)"><span class="s-symbol">×</span><span class="s-word">微妙</span></button>
+    <h2 class="survey-title">電話どうでした？</h2>
+    <p class="survey-subtitle">（30秒で終わります）</p>
+
+    <!-- ① 電話どうでした？ -->
+    <div class="survey-section">
+      <p class="survey-label">① 電話どうでした？</p>
+      <div class="survey-options">
+        <button class="survey-btn" data-group="call" data-value="good">
+          <span class="survey-icon">◎</span>
+          <span class="survey-text">出た</span>
+        </button>
+        <button class="survey-btn" data-group="call" data-value="normal">
+          <span class="survey-icon">○</span>
+          <span class="survey-text">普通</span>
+        </button>
+        <button class="survey-btn" data-group="call" data-value="bad">
+          <span class="survey-icon">×</span>
+          <span class="survey-text">出ない</span>
+        </button>
+      </div>
     </div>
 
-    <div class="survey-section-label">接続</div>
-    <div class="survey-btn-group">
-      <button class="survey-toggle-btn s-good" onclick="surveySelect(this)"><span class="s-symbol">◎</span><span class="s-word">良い</span></button>
-      <button class="survey-toggle-btn s-mid"  onclick="surveySelect(this)"><span class="s-symbol">○</span><span class="s-word">普通</span></button>
-      <button class="survey-toggle-btn s-bad"  onclick="surveySelect(this)"><span class="s-symbol">×</span><span class="s-word">出ない</span></button>
+    <!-- ② 受入どうでした？ -->
+    <div class="survey-section">
+      <p class="survey-label">② 受入どうでした？</p>
+      <div class="survey-options">
+        <button class="survey-btn" data-group="accept" data-value="good">
+          <span class="survey-icon">◎</span>
+          <span class="survey-text">OK</span>
+        </button>
+        <button class="survey-btn" data-group="accept" data-value="normal">
+          <span class="survey-icon">○</span>
+          <span class="survey-text">条件あり</span>
+        </button>
+        <button class="survey-btn" data-group="accept" data-value="bad">
+          <span class="survey-icon">×</span>
+          <span class="survey-text">NG</span>
+        </button>
+      </div>
     </div>
 
-    <div class="survey-section-label">受入</div>
-    <div class="survey-btn-group">
-      <button class="survey-toggle-btn s-good" onclick="surveySelect(this)"><span class="s-symbol">◎</span><span class="s-word">OK</span></button>
-      <button class="survey-toggle-btn s-mid"  onclick="surveySelect(this)"><span class="s-symbol">○</span><span class="s-word">条件あり</span></button>
-      <button class="survey-toggle-btn s-bad"  onclick="surveySelect(this)"><span class="s-symbol">×</span><span class="s-word">無理</span></button>
+    <!-- ③ 金額どうでした？ -->
+    <div class="survey-section">
+      <p class="survey-label">③ 金額どうでした？</p>
+      <div class="survey-options">
+        <button class="survey-btn" data-group="price" data-value="good">
+          <span class="survey-icon">◎</span>
+          <span class="survey-text">安い</span>
+        </button>
+        <button class="survey-btn" data-group="price" data-value="normal">
+          <span class="survey-icon">○</span>
+          <span class="survey-text">普通</span>
+        </button>
+        <button class="survey-btn" data-group="price" data-value="bad">
+          <span class="survey-icon">×</span>
+          <span class="survey-text">高い</span>
+        </button>
+      </div>
     </div>
 
-    <div class="survey-section-label">金額</div>
-    <div class="survey-btn-group">
-      <button class="survey-toggle-btn s-good" onclick="surveySelect(this)"><span class="s-symbol">◎</span><span class="s-word">安い</span></button>
-      <button class="survey-toggle-btn s-mid"  onclick="surveySelect(this)"><span class="s-symbol">○</span><span class="s-word">普通</span></button>
-      <button class="survey-toggle-btn s-bad"  onclick="surveySelect(this)"><span class="s-symbol">×</span><span class="s-word">高い</span></button>
+    <!-- チェックボックス「今日はもう表示しない」 -->
+    <div class="survey-no-show">
+      <label class="survey-no-show-label">
+        <input type="checkbox" id="noShowToday">
+        <span>今日はもう表示しない</span>
+      </label>
     </div>
 
-    <button class="survey-submit-btn" id="surveySubmit">送信して閉じる</button>
+    <!-- 送信ボタン -->
+    <button id="surveySubmit" class="survey-submit-btn">送信</button>
+
   </div>
 </div>
 
@@ -1432,47 +1509,77 @@ map.on('moveend', () => {
   updateByMapBounds();
 });
 
-// アンケートポップアップ制御
-function surveySelect(btn) {
-  btn.closest('.survey-btn-group').querySelectorAll('.survey-toggle-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+// ── アンケートモーダルを開く関数 ──
+function openSurveyModal() {
+  // 「今日はもう表示しない」チェック
+  const noShowDate = localStorage.getItem('surveyNoShowDate');
+  const today = new Date().toISOString().slice(0, 10);
+  if (noShowDate === today) return; // 今日はスキップ
+
+  // チェックボックスを毎回リセット
+  document.getElementById('noShowToday').checked = false;
+
+  // モーダルを表示
+  document.getElementById('surveyModal').style.display = 'flex';
 }
-// デフォルト：全行「○ 普通」を選択状態にする
-document.querySelectorAll('.survey-btn-group').forEach(group => {
-  group.querySelectorAll('.survey-toggle-btn')[1].classList.add('active');
-});
-document.getElementById('surveySubmit').addEventListener('click', () => {
-  const groups = document.querySelectorAll('.survey-btn-group');
-  const keys = ['全体', '接続', '受入', '金額'];
-  const feedback = {};
-  groups.forEach((group, i) => {
-    const active = group.querySelector('.survey-toggle-btn.active');
-    feedback[keys[i]] = active ? active.querySelector('.s-symbol').textContent + active.querySelector('.s-word').textContent : '';
+
+// ── アンケートボタン選択処理 ──
+document.querySelectorAll('.survey-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const group = this.dataset.group;
+    // 同グループの選択を解除
+    document.querySelectorAll(`.survey-btn[data-group="${group}"]`)
+      .forEach(b => b.classList.remove('selected'));
+    // クリックしたボタンを選択
+    this.classList.add('selected');
   });
-  localStorage.setItem('sanpai_feedback', JSON.stringify(feedback));
-  // localStorage.setItem('sanpai_survey_date', new Date().toLocaleDateString('ja-JP')); // 開発中は無効化
-  document.getElementById('surveyPopup').classList.remove('active');
 });
-document.getElementById('surveyPopup').addEventListener('click', function(e) {
+
+// ── 送信ボタン処理 ──
+document.getElementById('surveySubmit').addEventListener('click', function() {
+  // 各グループの選択値を取得
+  const getValue = (group) => {
+    const sel = document.querySelector(`.survey-btn.selected[data-group="${group}"]`);
+    return sel ? sel.dataset.value : null;
+  };
+
+  const result = {
+    call:   getValue('call'),
+    accept: getValue('accept'),
+    price:  getValue('price'),
+  };
+
+  // 「今日はもう表示しない」チェック処理
+  const noShow = document.getElementById('noShowToday').checked;
+  if (noShow) {
+    const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+    localStorage.setItem('surveyNoShowDate', today);
+  }
+
+  // 既存の送信処理
+  localStorage.setItem('sanpai_feedback', JSON.stringify(result));
+  // localStorage.setItem('sanpai_survey_date', new Date().toLocaleDateString('ja-JP')); // 開発中は無効化
+
+  console.log('アンケート送信:', result, 'noShow:', noShow);
+  document.getElementById('surveyModal').style.display = 'none';
+});
+
+// 背景クリックで閉じる
+document.getElementById('surveyModal').addEventListener('click', function(e) {
   if (e.target === this) {
-    // localStorage.setItem('sanpai_survey_date', new Date().toLocaleDateString('ja-JP')); // 開発中は無効化
-    this.classList.remove('active');
+    this.style.display = 'none';
   }
 });
 
-// アンケートポップアップ：復帰検知トリガー（1日1回）
+// アンケートモーダル：復帰検知トリガー（1日1回）
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState !== 'visible') return;
   if (!sessionStorage.getItem('sanpai_called')) return;
 
-  // 1日1回チェック（開発中は無効化）
-  // const today = new Date().toLocaleDateString('ja-JP');
-  // if (localStorage.getItem('sanpai_survey_date') === today) return;
-
-  // フラグをリセットして1秒後にポップアップ表示
+  // フラグをリセットして1秒後にモーダル表示
   sessionStorage.removeItem('sanpai_called');
   setTimeout(() => {
-    document.getElementById('surveyPopup').classList.add('active');
+    openSurveyModal();
   }, 1000);
 });
 
