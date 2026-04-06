@@ -1662,7 +1662,7 @@ document.getElementById('surveySubmit').addEventListener('click', function() {
   btn.textContent = '送信中...';
 
   // ── ③ 送信処理（0.5秒後に実行） ──
-  setTimeout(function() {
+  setTimeout(async function() {
 
     // 各グループの選択値を取得
     const getValue = function(group) {
@@ -1690,6 +1690,21 @@ document.getElementById('surveySubmit').addEventListener('click', function() {
 
     // 既存の送信処理
     localStorage.setItem('sanpai_feedback', JSON.stringify(result));
+
+    // ── Firestoreに保存 ──
+    if (window._firestoreReady) {
+      try {
+        await window._addDoc(window._collection(window._db, 'survey_results'), {
+          call:      result.call,
+          accept:    result.accept,
+          price:     result.price,
+          createdAt: window._serverTimestamp()
+        });
+        console.log('Firestore保存成功');
+      } catch (e) {
+        console.error('Firestore保存失敗:', e);
+      }
+    }
 
     // localStorageのフラグをリセット
     localStorage.setItem('surveyJustShown', 'false');
@@ -1821,6 +1836,31 @@ document.getElementById('addHomeInlineBtn').addEventListener('click', () => {
 // 電話・LINE後にホーム追加案内を表示する関数（バー削除のため無効化）
 function promptAddHome() {}
 
+</script>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC9N9Qq3jJtbYj_uCCOSzQe864RiUVMHK4",
+    authDomain: "sanpaigo-dfb47.firebaseapp.com",
+    projectId: "sanpaigo-dfb47",
+    storageBucket: "sanpaigo-dfb47.firebasestorage.app",
+    messagingSenderId: "643609447097",
+    appId: "1:643609447097:web:4e6e2f78f34d8951676968"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // グローバルに公開（既存の送信処理から呼べるように）
+  window._db = db;
+  window._firestoreReady = true;
+  window._addDoc = addDoc;
+  window._collection = collection;
+  window._serverTimestamp = serverTimestamp;
 </script>
 </body>
 </html>
