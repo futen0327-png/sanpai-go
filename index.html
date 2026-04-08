@@ -1110,7 +1110,7 @@ body.map-expanded #map-close-btn {
 function sendToLine(name, phone, items, lat, lng) {
   promptAddHome();
   const mapUrl = 'https://maps.google.com/?q=' + lat + ',' + lng;
-  const lineText = 'ここでいいですか？\n\n' + name + '\n' + mapUrl + '\n\n詳細：\nhttps://sanpaigo.com';
+  const lineText = 'ここでいいですか？\n\n' + name + '\n' + mapUrl + '\n\n■詳細（さんぱいGO）\nhttps://sanpaigo.com';
   const url = 'https://line.me/R/msg/text/?' + encodeURIComponent(lineText);
   window.location.href = url;
 }
