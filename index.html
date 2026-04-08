@@ -1105,23 +1105,13 @@ body.map-expanded #map-close-btn {
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // ────────────────────────────────────────
-// LINE起動（親方相談）
+// LINE起動
 // ※ メッセージ文言を変更する場合はこの関数を編集してください
 function sendToLine(name, phone, items, lat, lng) {
   promptAddHome();
   const mapUrl = 'https://maps.google.com/?q=' + lat + ',' + lng;
-  const siteUrl = 'https://sanpai-go.com';
-  const phoneText = phone ? phone : '未確認';
-  const msg =
-    '【親方相談】\n' +
-    'この処分場で大丈夫ですか？\n\n' +
-    '施設名：' + name + '\n' +
-    '電話：' + phoneText + '\n' +
-    '品目：' + items + '\n' +
-    '場所：' + mapUrl + '\n\n' +
-    'さんぱいGO\n' +
-    siteUrl;
-  const url = 'https://line.me/R/msg/text/?' + encodeURIComponent(msg);
+  const lineText = 'ここでいいですか？\n\n' + name + '\n' + mapUrl + '\n\n詳細：\nhttps://sanpaigo.com';
+  const url = 'https://line.me/R/msg/text/?' + encodeURIComponent(lineText);
   window.location.href = url;
 }
 
