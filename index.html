@@ -127,6 +127,38 @@ body {
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
+  position: relative;
+}
+
+/* ブックマークボタン */
+.bookmark-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.15s;
+  z-index: 1;
+}
+.bookmark-btn:active {
+  background: rgba(0, 0, 0, 0.05);
+}
+.bookmark-btn .bookmark-icon path {
+  stroke: #BBBBBB;
+  fill: none;
+  transition: stroke 0.2s, fill 0.2s;
+}
+.bookmark-btn.saved .bookmark-icon path {
+  stroke: #D4A017;
+  fill: #D4A017;
 }
 .card:active {
   transform: scale(0.98);
@@ -1135,6 +1167,7 @@ const isTestMode = true;
 // ダミーデータ（大阪5件＋奈良5件）
 const facilities = [
   {
+    id: "osaka_001",
     name: "大阪リサイクルセンター",
     region: "大阪",
     address: "大阪府大阪市西淀川区",
@@ -1146,6 +1179,7 @@ const facilities = [
     phone: "0000000000"
   },
   {
+    id: "osaka_002",
     name: "なにわ産廃処理場",
     region: "大阪",
     address: "大阪府大阪市福島区",
@@ -1157,6 +1191,7 @@ const facilities = [
     phone: "0000000000"
   },
   {
+    id: "osaka_003",
     name: "関西エコ処理センター",
     region: "大阪",
     address: "大阪府大阪市住之江区",
@@ -1168,6 +1203,7 @@ const facilities = [
     phone: "0000000000"
   },
   {
+    id: "sakai_001",
     name: "堺クリーンプラント",
     region: "堺",
     address: "大阪府堺市堺区",
@@ -1179,6 +1215,7 @@ const facilities = [
     phone: "0000000000"
   },
   {
+    id: "osaka_004",
     name: "近畿環境サービス",
     region: "大阪",
     address: "大阪府東大阪市",
@@ -1190,6 +1227,7 @@ const facilities = [
     phone: "0000000000"
   },
   {
+    id: "nara_001",
     name: "奈良中央リサイクル",
     region: "奈良",
     address: "奈良県奈良市西九条町",
@@ -1201,6 +1239,7 @@ const facilities = [
     phone: "0000000000"
   },
   {
+    id: "nara_002",
     name: "大和産廃センター",
     region: "奈良",
     address: "奈良県大和郡山市",
@@ -1212,6 +1251,7 @@ const facilities = [
     phone: "0000000000"
   },
   {
+    id: "nara_003",
     name: "橿原クリーン工業",
     region: "奈良",
     address: "奈良県橿原市四条町",
@@ -1223,6 +1263,7 @@ const facilities = [
     phone: "0000000000"
   },
   {
+    id: "nara_004",
     name: "光リサイクルセンター",
     region: "奈良",
     address: "奈良県御所市柏原",
@@ -1234,6 +1275,7 @@ const facilities = [
     phone: "0000000000"
   },
   {
+    id: "nara_005",
     name: "南和環境プラント",
     region: "奈良",
     address: "奈良県吉野郡大淀町",
@@ -1299,6 +1341,11 @@ function renderCard(f, num, isFeatured) {
     ? (isFeatured ? '🔥 今すぐ電話（ここが一番近い）（テスト中）' : '今すぐ電話する（テスト中）')
     : (isFeatured ? '🔥 今すぐ電話（ここが一番近い）' : '今すぐ電話する');
   return `
+    <button class="bookmark-btn" id="bookmark-${f.id}" onclick="toggleBookmark(event, '${f.id}')" aria-label="お気に入り登録">
+      <svg class="bookmark-icon" width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 2h12v14l-6-3.5L2 16V2z" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+    </button>
     <div class="card-body">
       <div class="card-name">
         <span class="card-num">${num}</span>${f.name}
@@ -1825,6 +1872,48 @@ document.getElementById('addHomeInlineBtn').addEventListener('click', () => {
 
 // 電話・LINE後にホーム追加案内を表示する関数（バー削除のため無効化）
 function promptAddHome() {}
+
+/* ============================================
+   ブックマーク機能
+   ============================================ */
+
+const BOOKMARK_KEY = 'sanpai_bookmarks';
+
+function getBookmarks() {
+  try {
+    return JSON.parse(localStorage.getItem(BOOKMARK_KEY)) || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveBookmarks(bookmarks) {
+  localStorage.setItem(BOOKMARK_KEY, JSON.stringify(bookmarks));
+}
+
+function toggleBookmark(event, facilityId) {
+  event.stopPropagation();
+  const bookmarks = getBookmarks();
+  const btn = document.getElementById('bookmark-' + facilityId);
+  if (bookmarks[facilityId]) {
+    delete bookmarks[facilityId];
+    btn.classList.remove('saved');
+  } else {
+    bookmarks[facilityId] = true;
+    btn.classList.add('saved');
+  }
+  saveBookmarks(bookmarks);
+}
+
+function initBookmarks() {
+  const bookmarks = getBookmarks();
+  Object.keys(bookmarks).forEach(function(facilityId) {
+    const btn = document.getElementById('bookmark-' + facilityId);
+    if (btn) btn.classList.add('saved');
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initBookmarks);
 
 </script>
 
