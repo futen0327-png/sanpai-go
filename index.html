@@ -1580,6 +1580,51 @@ function updateByMapBounds() {
   }
 
   // レビューデータ（現時点はダミー空配列。Firebase連携後に差し替え）
+  // ── テスト用ダミーレビュー（Firebase連携後は削除） ──
+  if (!window._cachedReviews) {
+    window._cachedReviews = [
+      // osaka_001：総合優秀（対応◎、受入◎、料金は普通）
+      { facilityId: "osaka_001", connection: "good",   acceptance: "good",   price: "good",   createdAt: 5 },
+      { facilityId: "osaka_001", connection: "good",   acceptance: "good",   price: "normal", createdAt: 4 },
+      { facilityId: "osaka_001", connection: "good",   acceptance: "good",   price: "good",   createdAt: 3 },
+      { facilityId: "osaka_001", connection: "normal", acceptance: "good",   price: "normal", createdAt: 2 },
+      { facilityId: "osaka_001", connection: "normal", acceptance: "bad",    price: "normal", createdAt: 1 },
+      // osaka_002：1件だけ良い
+      { facilityId: "osaka_002", connection: "good",   acceptance: "good",   price: "good",   createdAt: 1 },
+      // osaka_003：高コストだが安定普通
+      { facilityId: "osaka_003", connection: "normal", acceptance: "normal", price: "normal", createdAt: 3 },
+      { facilityId: "osaka_003", connection: "normal", acceptance: "normal", price: "bad",    createdAt: 2 },
+      { facilityId: "osaka_003", connection: "normal", acceptance: "normal", price: "normal", createdAt: 1 },
+      // sakai_001：料金安くて評判良い
+      { facilityId: "sakai_001", connection: "good",   acceptance: "good",   price: "good",   createdAt: 3 },
+      { facilityId: "sakai_001", connection: "good",   acceptance: "normal", price: "good",   createdAt: 2 },
+      { facilityId: "sakai_001", connection: "normal", acceptance: "normal", price: "good",   createdAt: 1 },
+      // osaka_004：対応が悪い
+      { facilityId: "osaka_004", connection: "bad",    acceptance: "normal", price: "normal", createdAt: 3 },
+      { facilityId: "osaka_004", connection: "bad",    acceptance: "bad",    price: "normal", createdAt: 2 },
+      { facilityId: "osaka_004", connection: "normal", acceptance: "normal", price: "normal", createdAt: 1 },
+      // nara_001：奈良エリア最優秀
+      { facilityId: "nara_001",  connection: "good",   acceptance: "good",   price: "good",   createdAt: 4 },
+      { facilityId: "nara_001",  connection: "good",   acceptance: "good",   price: "normal", createdAt: 3 },
+      { facilityId: "nara_001",  connection: "good",   acceptance: "good",   price: "good",   createdAt: 2 },
+      { facilityId: "nara_001",  connection: "normal", acceptance: "good",   price: "good",   createdAt: 1 },
+      // nara_002：安くて受入が良い
+      { facilityId: "nara_002",  connection: "normal", acceptance: "good",   price: "good",   createdAt: 3 },
+      { facilityId: "nara_002",  connection: "good",   acceptance: "good",   price: "good",   createdAt: 2 },
+      { facilityId: "nara_002",  connection: "normal", acceptance: "normal", price: "good",   createdAt: 1 },
+      // nara_003：橿原（地元）安定普通
+      { facilityId: "nara_003",  connection: "normal", acceptance: "normal", price: "normal", createdAt: 3 },
+      { facilityId: "nara_003",  connection: "normal", acceptance: "normal", price: "normal", createdAt: 2 },
+      { facilityId: "nara_003",  connection: "good",   acceptance: "normal", price: "normal", createdAt: 1 },
+      // nara_004：レビュー少なめ・普通
+      { facilityId: "nara_004",  connection: "normal", acceptance: "normal", price: "normal", createdAt: 1 },
+      // nara_005：混合評価
+      { facilityId: "nara_005",  connection: "good",   acceptance: "bad",    price: "good",   createdAt: 3 },
+      { facilityId: "nara_005",  connection: "bad",    acceptance: "normal", price: "good",   createdAt: 2 },
+      { facilityId: "nara_005",  connection: "normal", acceptance: "normal", price: "normal", createdAt: 1 },
+    ];
+  }
+  // ── テスト用ダミーここまで ──
   const reviews = window._cachedReviews || [];
 
   // スコア計算・降順ソート
