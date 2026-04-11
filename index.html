@@ -1483,11 +1483,6 @@ function calcDistance(lat1, lng1, lat2, lng2) {
 // ランキングスコア計算
 // ────────────────────────────────────────
 function calculateScore(facility, reviews, userLat, userLng) {
-  // ── テスト用：osaka_001を強制最下位（確認後削除） ──
-  if (facility.id === "osaka_001") {
-    return { totalScore: -9999, distance_km: 0 };
-  }
-  // ────────────────────────────────────────────────
   // 【1】距離スコア
   const distance_km = calcDistance(userLat, userLng, facility.lat, facility.lng);
   const distanceScore = 1000 / (distance_km + 1);
@@ -1587,14 +1582,16 @@ function updateByMapBounds() {
   // レビューデータ（現時点はダミー空配列。Firebase連携後に差し替え）
   const reviews = window._cachedReviews || [];
 
-  // スコア計算・降順ソート
-  inView = inView
-    .map(f => {
-      const { totalScore, distance_km } = calculateScore(f, reviews, center.lat, center.lng);
-      const distKm = Math.round(distance_km * 10) / 10;
-      return { ...f, _sortScore: totalScore, distance: distKm };
-    })
-    .sort((a, b) => b._sortScore - a._sortScore)
+  // ① スコア計算（_sortScoreを付与）
+  const facilitiesWithScore = inView.map(f => {
+    const { totalScore, distance_km } = calculateScore(f, reviews, center.lat, center.lng);
+    const distKm = Math.round(distance_km * 10) / 10;
+    return { ...f, _sortScore: totalScore, distance: distKm };
+  });
+
+  // ② スコア降順ソート → 上位10件 → _sortScore除去
+  facilitiesWithScore.sort((a, b) => b._sortScore - a._sortScore);
+  const sortedFacilities = facilitiesWithScore
     .slice(0, 10)
     .map(({ _sortScore, ...f }) => f);
 
@@ -1610,12 +1607,12 @@ function updateByMapBounds() {
   label.classList.add('flash');
 
   // ③ 前回1位の施設名を記録してからrenderList
-  const newTopName = inView[0]?.name || '';
+  const newTopName = sortedFacilities[0]?.name || '';
   const prevName = _prevTopName;
   _prevTopName = newTopName;
 
   // skipFitBounds=true で renderList を呼ぶ（ループ防止）
-  renderList(inView, true);
+  renderList(sortedFacilities, true);
 
   // ③ 前回1位カードにほんのり残留スタイルを付ける
   if (prevName && prevName !== newTopName) {
