@@ -1520,17 +1520,10 @@ function calculateScore(facility, reviews, userLat, userLng) {
     }
   }
 
-  // 【5】件数補正
-  const reviewCount = facilityReviews.length;
-  const countBonus   = Math.min(40, Math.log(reviewCount + 1) * 20);
-  const countPenalty = reviewCount === 1 ? -20 : 0;
-
-  // 【6】最終スコア
+  // 【5】最終スコア
   const totalScore =
     distanceScore
     + reviewScore
-    + countBonus
-    + countPenalty
     + latestPenalty;
 
   return { totalScore, distance_km };
@@ -1582,16 +1575,14 @@ function updateByMapBounds() {
   // レビューデータ（現時点はダミー空配列。Firebase連携後に差し替え）
   const reviews = window._cachedReviews || [];
 
-  // ① スコア計算（_sortScoreを付与）
-  const facilitiesWithScore = inView.map(f => {
-    const { totalScore, distance_km } = calculateScore(f, reviews, center.lat, center.lng);
-    const distKm = Math.round(distance_km * 10) / 10;
-    return { ...f, _sortScore: totalScore, distance: distKm };
-  });
-
-  // ② スコア降順ソート → 上位10件 → _sortScore除去
-  facilitiesWithScore.sort((a, b) => b._sortScore - a._sortScore);
-  const sortedFacilities = facilitiesWithScore
+  // スコア計算・降順ソート
+  inView = inView
+    .map(f => {
+      const { totalScore, distance_km } = calculateScore(f, reviews, center.lat, center.lng);
+      const distKm = Math.round(distance_km * 10) / 10;
+      return { ...f, _sortScore: totalScore, distance: distKm };
+    })
+    .sort((a, b) => b._sortScore - a._sortScore)
     .slice(0, 10)
     .map(({ _sortScore, ...f }) => f);
 
@@ -1607,12 +1598,12 @@ function updateByMapBounds() {
   label.classList.add('flash');
 
   // ③ 前回1位の施設名を記録してからrenderList
-  const newTopName = sortedFacilities[0]?.name || '';
+  const newTopName = inView[0]?.name || '';
   const prevName = _prevTopName;
   _prevTopName = newTopName;
 
   // skipFitBounds=true で renderList を呼ぶ（ループ防止）
-  renderList(sortedFacilities, true);
+  renderList(inView, true);
 
   // ③ 前回1位カードにほんのり残留スタイルを付ける
   if (prevName && prevName !== newTopName) {
