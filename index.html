@@ -1479,6 +1479,63 @@ function calcDistance(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
+// ────────────────────────────────────────
+// ランキングスコア計算
+// ────────────────────────────────────────
+function calculateScore(facility, reviews, userLat, userLng) {
+  // 【1】距離スコア
+  const distance_km = calcDistance(userLat, userLng, facility.lat, facility.lng);
+  const distanceScore = 1000 / (distance_km + 1);
+
+  // 【2】この施設のレビューを取得・createdAt降順で並べ、直近最大3件
+  const facilityReviews = reviews
+    .filter(r => r.facilityId === facility.id)
+    .sort((a, b) => b.createdAt - a.createdAt);
+  const recent = facilityReviews.slice(0, 3);
+
+  // 【3】reviewScore（直近平均）
+  const connectionMap = { good: 50,  normal: 20, bad: -50  };
+  const acceptanceMap = { good: 80,  normal: 30, bad: -100 };
+  const priceMap2     = { good: 30,  normal: 10, bad: 0    };
+
+  let reviewScore = 0;
+  if (recent.length > 0) {
+    const total = recent.reduce((sum, r) => {
+      const c = connectionMap[r.connection] ?? 0;
+      const a = acceptanceMap[r.acceptance] ?? 0;
+      const p = priceMap2[r.price]          ?? 0;
+      return sum + c + a + p;
+    }, 0);
+    reviewScore = total / recent.length;
+  }
+
+  // 【4】latestPenalty（最新レビューの強制判定）
+  let latestPenalty = 0;
+  if (facilityReviews.length > 0) {
+    const latest = facilityReviews[0];
+    if (latest.acceptance === 'bad') {
+      latestPenalty = -1000;
+    } else if (latest.connection === 'bad') {
+      latestPenalty = -500;
+    }
+  }
+
+  // 【5】件数補正
+  const reviewCount = facilityReviews.length;
+  const countBonus   = Math.min(40, Math.log(reviewCount + 1) * 20);
+  const countPenalty = reviewCount === 1 ? -20 : 0;
+
+  // 【6】最終スコア
+  const totalScore =
+    distanceScore
+    + reviewScore
+    + countBonus
+    + countPenalty
+    + latestPenalty;
+
+  return { totalScore, distance_km };
+}
+
 // 地図範囲内の施設をランキングしてカード更新
 function updateByMapBounds() {
   const bounds = map.getBounds();
@@ -1522,14 +1579,17 @@ function updateByMapBounds() {
     return;
   }
 
-  // 距離ベースでスコアリング・並び替え
+  // レビューデータ（現時点はダミー空配列。Firebase連携後に差し替え）
+  const reviews = window._cachedReviews || [];
+
+  // スコア計算・降順ソート
   inView = inView
     .map(f => {
-      const dist = calcDistance(center.lat, center.lng, f.lat, f.lng);
-      const priceBonus = f.priceLevel === 'cheap' ? 0.3 : 0;
-      return { ...f, _sortScore: dist - priceBonus };
+      const { totalScore, distance_km } = calculateScore(f, reviews, center.lat, center.lng);
+      const distKm = Math.round(distance_km * 10) / 10;
+      return { ...f, _sortScore: totalScore, distance: distKm };
     })
-    .sort((a, b) => a._sortScore - b._sortScore)
+    .sort((a, b) => b._sortScore - a._sortScore)
     .slice(0, 10)
     .map(({ _sortScore, ...f }) => f);
 
@@ -1835,7 +1895,7 @@ document.getElementById('surveyModal').addEventListener('click', function(e) {
 
 
 // 初期表示
-renderList(facilities);
+updateByMapBounds();
 
 // Service Worker を完全無効化（PWA化させない）
 if ('serviceWorker' in navigator) {
