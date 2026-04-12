@@ -2477,6 +2477,27 @@ function render(skipFitBounds = false) {
     });
     initBookmarks();
 
+    // お気に入りカードの電話ボタンにイベント登録
+    listEl.querySelectorAll('.call-btn, .call-btn-inline').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const callerCard = btn.closest('.card');
+        const favFacilityId = callerCard ? callerCard.dataset.favFacilityId : null;
+
+        if (isTestMode) {
+          e.preventDefault();
+          setTimeout(() => openFavSurveyModal(favFacilityId), 500);
+        } else {
+          const phone = this.dataset.phone;
+          if (phone) window.location.href = 'tel:' + phone;
+          localStorage.setItem('favCallFlag', 'true');
+          localStorage.setItem('favCallFacilityId', favFacilityId || '');
+          localStorage.setItem('favCallLeaveTime', Date.now().toString());
+        }
+        promptAddHome();
+      });
+    });
+
   } else {
     // 一覧タブ：キャッシュ済みスコア施設を表示
     renderList(_lastSortedFacilities, skipFitBounds);
