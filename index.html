@@ -1935,11 +1935,13 @@ if ('serviceWorker' in navigator) {
   if (localStorage.getItem('addHomeBarClosed')) return;
   const addHomeBtn = document.getElementById('addHomeInlineBtn');
   addHomeBtn.style.display = 'inline-block';
-  // 初回のみbounceアニメーション
-  addHomeBtn.classList.add('attention');
-  addHomeBtn.addEventListener('animationend', () => {
-    addHomeBtn.classList.remove('attention');
-  }, { once: true });
+  // 初回のみbounceアニメーション（3秒遅延：地図クローズアップ後に発動）
+  setTimeout(() => {
+    addHomeBtn.classList.add('attention');
+    addHomeBtn.addEventListener('animationend', () => {
+      addHomeBtn.classList.remove('attention');
+    }, { once: true });
+  }, 3000);
 
 document.getElementById('addHomeInlineBtn').addEventListener('click', () => {
     document.getElementById('addHomePopup').classList.add('active');
