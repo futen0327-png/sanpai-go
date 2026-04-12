@@ -330,14 +330,13 @@ body.map-expanded .tab-wrap {
   margin-top: 4px;
 }
 .accordion-arrow {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   font-size: 10px;
   color: #aaa;
   margin-left: 6px;
-  transition: transform 0.3s ease;
-}
-.card.open .accordion-arrow {
-  transform: rotate(180deg);
+  white-space: nowrap;
 }
 .card-phone {
   font-size: 12px;
@@ -1537,7 +1536,7 @@ function renderCard(f, num, isFeatured) {
       <div class="card-name">
         <span class="card-num">${num}</span>${f.name}
         <span class="top-badge">今すぐ行ける可能性高い</span>
-        <span class="accordion-arrow">▼</span>
+        <span class="accordion-arrow">▼ 詳細</span>
       </div>
       <div class="card-meta">
         <span class="card-distance">📍 ${f.distance}km</span>
@@ -1616,6 +1615,10 @@ function renderList(data, skipFitBounds = false) {
       if (!isTop) {
         // 2位以降：アコーディオン開閉
         card.classList.toggle('open');
+        const arrow = card.querySelector('.accordion-arrow');
+        if (arrow) {
+          arrow.textContent = card.classList.contains('open') ? '▲ 閉じる' : '▼ 詳細';
+        }
         return;
       }
       // 1位：地図移動
