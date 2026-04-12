@@ -147,6 +147,12 @@ body {
   background: #1c6ea8;
   color: white;
 }
+.tab-btn.active .bookmark-icon path {
+  stroke: white;
+}
+.tab-btn:not(.active) .bookmark-icon path {
+  stroke: #555;
+}
 
 /* お気に入り空状態 */
 .empty-fav {
@@ -1103,7 +1109,11 @@ body.map-expanded #map-close-btn {
 <div class="list-wrap">
   <div class="tab-wrap">
     <button class="tab-btn active" data-tab="list">一覧</button>
-    <button class="tab-btn" data-tab="fav">⭐ お気に入り</button>
+    <button class="tab-btn" data-tab="fav">
+      <svg class="bookmark-icon" width="14" height="16" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:4px;">
+        <path d="M2 2h12v14l-6-3.5L2 16V2z" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>お気に入り
+    </button>
   </div>
   <div class="list-label-wrap">
     <div class="list-label" id="listLabel">📍 このエリア内でおすすめ順</div>
