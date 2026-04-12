@@ -61,7 +61,7 @@ body {
 
 /* 地図 */
 #map {
-  height: 32vh;
+  height: 36vh;
   flex-shrink: 0;
   transition: flex-grow 0.25s ease, height 0.25s ease;
 }
@@ -273,6 +273,22 @@ body.map-expanded .tab-wrap {
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 4px;
+}
+/* 2位以降：電話ボタン小型版 */
+.call-btn-inline {
+  margin-left: auto;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  height: 32px;
+  display: flex;
+  align-items: center;
+}
+.call-btn-inline img {
+  height: 32px;
+  width: auto;
 }
 .card-distance {
   font-size: 13px;
@@ -1079,11 +1095,7 @@ body.map-expanded #map-close-btn {
   height: auto;
   display: block;
 }
-/* 2位以降の電話ボタン：70%に縮小 */
-.call-btn-sm .call-btn-img {
-  width: 70%;
-  margin: 0 auto;
-}
+
 </style>
 </head>
 <body>
@@ -1529,10 +1541,8 @@ function renderCard(f, num, isFeatured) {
       <div class="card-meta">
         <span class="card-distance">📍 ${f.distance}km</span>
         <span class="price-badge ${price.cls}">${price.label}</span>
-      </div>
-      <div style="padding:4px 0 2px;">
-        <button class="call-btn call-btn-sm${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
-          <img src="images/call-btn-normal.png" class="call-btn-img" alt="${callLabel}">
+        <button class="call-btn-inline${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
+          <img src="images/call-btn-normal.png" alt="📞電話">
         </button>
       </div>
       <div class="card-accordion">
