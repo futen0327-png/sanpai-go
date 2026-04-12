@@ -329,6 +329,10 @@ body.map-expanded .tab-wrap {
   border-top: 1px solid #eee;
   margin-top: 4px;
 }
+/* お気に入りタブ：2位以降カード薄い水色背景 */
+.card.fav-sub-card {
+  background: #f0f8ff;
+}
 .accordion-arrow {
   display: inline-flex;
   align-items: center;
@@ -1523,9 +1527,11 @@ function getPhoneDisplay(phone) {
 }
 
 const priceMap = {
-  cheap:  { label: "🟢 安い可能性あり", cls: "price-cheap"  },
-  normal: { label: "🟡 普通",           cls: "price-normal" },
-  high:   { label: "🔴 高め",           cls: "price-high"   }
+  // ラベルは将来のアンケート集計・金額情報導入時に復活予定
+  // cls（スタイルクラス）はそのまま保持
+  cheap:  { label: "", cls: "price-cheap"  },
+  normal: { label: "", cls: "price-normal" },
+  high:   { label: "", cls: "price-high"   }
 };
 
 // 地図初期化（前回現在地 or 大阪付近）
@@ -1588,7 +1594,7 @@ let _lastSortedFacilities = [];
 let _currentSurveyFacilityIndex = 0;
 
 // カードHTML生成（全カード共通構造）
-function renderCard(f, num, isFeatured) {
+function renderCard(f, num, isFeatured, isFav = false) {
   const price = priceMap[f.priceLevel];
   const callLabel = isTestMode
     ? (isFeatured ? '🔥 今すぐ電話（ここが一番近い）（テスト中）' : '今すぐ電話する（テスト中）')
@@ -1609,9 +1615,9 @@ function renderCard(f, num, isFeatured) {
       ${f.address ? `<div class="card-address">📌 ${f.address}</div>` : ''}
       <div class="card-meta">
         <span class="card-distance">📍 ${f.distance}km</span>
-        <span class="price-badge ${price.cls}">${price.label}</span>
+        ${price.label ? `<span class="price-badge ${price.cls}">${price.label}</span>` : ''}
       </div>
-      <div class="call-hint">空いてるかだけでもOK</div>
+      ${isFav ? '' : '<div class="call-hint">空いてるかだけでもOK</div>'}
     </div>
     <div class="card-actions">
       <div class="btn-row">
@@ -1644,10 +1650,14 @@ function renderCard(f, num, isFeatured) {
       </div>
       <div class="card-meta">
         <span class="card-distance">📍 ${f.distance}km</span>
-        <span class="price-badge ${price.cls}">${price.label}</span>
+        ${price.label ? `<span class="price-badge ${price.cls}">${price.label}</span>` : ''}
+        ${isFav ? `
+        <button class="call-btn-inline${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()" style="margin-left:8px;margin-right:32px;">
+          <img src="images/call-btn-normal.png" alt="📞電話">
+        </button>` : `
         <button class="call-btn-inline${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
           <img src="images/call-btn-normal.png" alt="📞電話">
-        </button>
+        </button>`}
       </div>
       <div class="card-accordion">
         <div class="card-accordion-inner">
@@ -2466,8 +2476,8 @@ function render(skipFitBounds = false) {
     listEl.innerHTML = '';
     favList.forEach((f, i) => {
       const card = document.createElement('div');
-      card.className = 'card' + (i === 0 ? ' top-card' : '');
-      card.innerHTML = renderCard(f, i + 1, i === 0);
+      card.className = 'card' + (i === 0 ? ' top-card' : ' fav-sub-card');
+      card.innerHTML = renderCard(f, i + 1, i === 0, true);
       card.dataset.favFacilityId = f.id;
       card.addEventListener('click', () => {
         _suppressMoveend = true;
