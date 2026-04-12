@@ -1177,50 +1177,50 @@ body.map-expanded #map-close-btn {
 <div id="surveyModal" class="survey-modal" style="display:none;">
   <div class="survey-content">
 
-    <h2 class="survey-title">電話どうでした？</h2>
+    <h2 class="survey-title">📞 電話どうでした？</h2>
     <hr class="survey-divider">
 
-    <!-- ① 電話どうでした？ -->
+    <!-- ① 接続 -->
     <div class="survey-section">
-      <p class="survey-label">① 電話どうでした？</p>
+      <p class="survey-label">① 接続</p>
       <div class="survey-options">
-        <button class="survey-btn" data-group="call" data-value="good">
+        <button class="survey-btn" data-group="connection" data-value="good">
           <span class="survey-icon">◎</span>
-          <span class="survey-text">出た</span>
+          <span class="survey-text">つながった</span>
         </button>
-        <button class="survey-btn" data-group="call" data-value="normal">
+        <button class="survey-btn" data-group="connection" data-value="normal">
           <span class="survey-icon">○</span>
           <span class="survey-text">普通</span>
         </button>
-        <button class="survey-btn" data-group="call" data-value="bad">
+        <button class="survey-btn" data-group="connection" data-value="bad">
           <span class="survey-icon">×</span>
           <span class="survey-text">出ない</span>
         </button>
       </div>
     </div>
 
-    <!-- ② 受入どうでした？ -->
+    <!-- ② 受入 -->
     <div class="survey-section">
-      <p class="survey-label">② 受入どうでした？</p>
+      <p class="survey-label">② 受入</p>
       <div class="survey-options">
-        <button class="survey-btn" data-group="accept" data-value="good">
+        <button class="survey-btn" data-group="acceptance" data-value="good">
           <span class="survey-icon">◎</span>
           <span class="survey-text">OK</span>
         </button>
-        <button class="survey-btn" data-group="accept" data-value="normal">
+        <button class="survey-btn" data-group="acceptance" data-value="normal">
           <span class="survey-icon">○</span>
           <span class="survey-text">条件あり</span>
         </button>
-        <button class="survey-btn" data-group="accept" data-value="bad">
+        <button class="survey-btn" data-group="acceptance" data-value="bad">
           <span class="survey-icon">×</span>
           <span class="survey-text">NG</span>
         </button>
       </div>
     </div>
 
-    <!-- ③ 金額どうでした？ -->
+    <!-- ③ 金額 -->
     <div class="survey-section">
-      <p class="survey-label">③ 金額どうでした？</p>
+      <p class="survey-label">③ 金額</p>
       <div class="survey-options">
         <button class="survey-btn" data-group="price" data-value="good">
           <span class="survey-icon">◎</span>
@@ -1234,8 +1234,6 @@ body.map-expanded #map-close-btn {
           <span class="survey-icon">×</span>
           <span class="survey-text">高い</span>
         </button>
-      </div>
-      <div class="survey-options survey-options-unknown">
         <button class="survey-btn survey-btn-unknown" data-group="price" data-value="unknown">
           <span class="survey-icon">－</span>
           <span class="survey-text">不明</span>
@@ -1243,19 +1241,24 @@ body.map-expanded #map-close-btn {
       </div>
     </div>
 
-    <!-- チェックボックス「今日はもう表示しない」 -->
-    <div class="survey-no-show">
+    <hr class="survey-divider">
+
+    <!-- 次へボタン -->
+    <button id="surveySubmit" class="survey-submit-btn">
+      次へ ▶
+      <span style="display:block;font-size:11px;font-weight:normal;opacity:0.7;margin-top:2px;">次の候補へ</span>
+    </button>
+
+    <hr class="survey-divider">
+
+    <!-- 下部コントロール -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px;">
       <label class="survey-no-show-label">
         <input type="checkbox" id="noShowToday">
-        <span>今日はもう表示しない</span>
+        <span>今日は表示しない</span>
       </label>
+      <button id="surveyClose" style="background:none;border:none;font-size:18px;color:#aaa;cursor:pointer;padding:4px 8px;">✕</button>
     </div>
-
-    <!-- 未回答警告 -->
-    <p id="surveyWarning" class="survey-warning"></p>
-
-    <!-- 送信ボタン -->
-    <button id="surveySubmit" class="survey-submit-btn">送信</button>
 
   </div>
 </div>
@@ -1483,6 +1486,9 @@ let _prevTopName = '';
 let currentTab = 'list';
 let _lastSortedFacilities = [];
 
+// アンケート：現在対象の施設インデックス
+let _currentSurveyFacilityIndex = 0;
+
 // カードHTML生成（全カード共通構造）
 function renderCard(f, num, isFeatured) {
   const price = priceMap[f.priceLevel];
@@ -1584,6 +1590,7 @@ function renderList(data, skipFitBounds = false) {
   }
 
   data.forEach((f, i) => {
+    // 電話ボタンに施設インデックスを付与（アンケート用）
     const num = i + 1;
     const price = priceMap[f.priceLevel];
 
@@ -1638,9 +1645,17 @@ function renderList(data, skipFitBounds = false) {
     listEl.appendChild(card);
   });
 
-  // 電話ボタンのイベント登録
-  listEl.querySelectorAll('.call-btn').forEach(btn => {
+  // 電話ボタンのイベント登録（.call-btn と .call-btn-inline 両方対応）
+  listEl.querySelectorAll('.call-btn, .call-btn-inline').forEach(btn => {
     btn.addEventListener('click', function(e) {
+      // 押されたカードのインデックスを取得してアンケート用に保存
+      const card = btn.closest('.card');
+      if (card) {
+        const idx = parseInt(card.dataset.facilityId || '0', 10);
+        _currentSurveyFacilityIndex = idx;
+        localStorage.setItem('surveyFacilityIndex', idx.toString());
+      }
+
       if (isTestMode) {
         e.preventDefault();
         alert('現在テスト中のため電話は利用できません');
@@ -1894,144 +1909,158 @@ map.on('moveend', () => {
 });
 
 // ── アンケートモーダルを開く関数 ──
-function openSurveyModal() {
+function openSurveyModal(facilityIndex) {
   // 「今日はもう表示しない」チェック
   const noShowDate = localStorage.getItem('surveyNoShowDate');
   const today = new Date().toISOString().slice(0, 10);
-  if (noShowDate === today) return; // 今日はスキップ
+  if (noShowDate === today) return;
 
-  // チェックボックスを毎回リセット
+  // 施設インデックスを保存
+  _currentSurveyFacilityIndex = (facilityIndex !== undefined) ? facilityIndex : 0;
+
+  // チェックボックス・選択状態をリセット
   document.getElementById('noShowToday').checked = false;
+  document.querySelectorAll('.survey-btn').forEach(function(b) {
+    b.classList.remove('selected', 'selected-good', 'selected-normal', 'selected-bad', 'selected-unknown');
+  });
+  document.getElementById('surveyWarning').textContent = '';
 
   // モーダルを表示
   document.getElementById('surveyModal').style.display = 'flex';
 }
 
-// ── アンケートボタン選択処理 ──
+// ── アンケート JS（完全版）──
+
+// 選択値を取得するヘルパー
+function getSurveyValue(group) {
+  const sel = document.querySelector(
+    `.survey-btn[data-group="${group}"].selected-good,
+     .survey-btn[data-group="${group}"].selected-normal,
+     .survey-btn[data-group="${group}"].selected-bad,
+     .survey-btn[data-group="${group}"].selected-unknown`
+  );
+  return sel ? sel.dataset.value : null;
+}
+
+// 1つでも選択されているか
+function hasSurveyInput() {
+  return ['connection', 'acceptance', 'price'].some(g => getSurveyValue(g) !== null);
+}
+
+// アンケート選択を保存（Firestore + localStorage）
+async function saveSurveyResult(facilityId) {
+  const result = {
+    connection: getSurveyValue('connection'),
+    acceptance: getSurveyValue('acceptance'),
+    price:      getSurveyValue('price'),
+    facilityId: facilityId || null,
+    createdAt:  new Date().toISOString()
+  };
+  localStorage.setItem('sanpai_feedback', JSON.stringify(result));
+
+  if (window._firestoreReady) {
+    try {
+      await window._addDoc(window._collection(window._db, 'survey_results'), {
+        connection: result.connection,
+        acceptance: result.acceptance,
+        price:      result.price,
+        facilityId: result.facilityId,
+        createdAt:  window._serverTimestamp()
+      });
+    } catch (e) {
+      console.error('Firestore保存失敗:', e);
+    }
+  }
+
+  // 施設ごとに表示済みフラグを立てる
+  if (facilityId) {
+    const shown = JSON.parse(localStorage.getItem('surveyShownFacilities') || '{}');
+    shown[facilityId] = true;
+    localStorage.setItem('surveyShownFacilities', JSON.stringify(shown));
+  }
+}
+
+// モーダルを閉じる
+function closeSurveyModal() {
+  document.getElementById('surveyModal').style.display = 'none';
+}
+
+// 次の施設へ移動
+function moveToNextFacility() {
+  const nextIndex = _currentSurveyFacilityIndex + 1;
+  const nextFacility = _lastSortedFacilities[nextIndex];
+  if (nextFacility) {
+    _suppressMoveend = true;
+    map.setView([nextFacility.lat, nextFacility.lng], 15);
+    setTimeout(function() {
+      const cards = document.querySelectorAll('#list .card');
+      const nextCard = cards[nextIndex];
+      if (nextCard) {
+        nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        nextCard.style.boxShadow = '0 0 0 3px #FF9800';
+        setTimeout(function() { nextCard.style.boxShadow = ''; }, 1500);
+      }
+    }, 300);
+  }
+}
+
+// ── ボタン選択処理 ──
 document.querySelectorAll('.survey-btn').forEach(btn => {
   btn.addEventListener('click', function() {
     const group = this.dataset.group;
-    const value = this.dataset.value;
-
-    // 同グループの選択クラスを全解除
     document.querySelectorAll(`.survey-btn[data-group="${group}"]`).forEach(b => {
       b.classList.remove('selected', 'selected-good', 'selected-normal', 'selected-bad', 'selected-unknown');
     });
-
-    // 値に応じたクラスを付与
     this.classList.add('selected');
-    if (value === 'good')    this.classList.add('selected-good');
-    if (value === 'normal')  this.classList.add('selected-normal');
-    if (value === 'bad')     this.classList.add('selected-bad');
-    if (value === 'unknown') this.classList.add('selected-unknown');
+    const v = this.dataset.value;
+    if (v === 'good')    this.classList.add('selected-good');
+    if (v === 'normal')  this.classList.add('selected-normal');
+    if (v === 'bad')     this.classList.add('selected-bad');
+    if (v === 'unknown') this.classList.add('selected-unknown');
   });
 });
 
-// ── 送信ボタン処理 ──
-document.getElementById('surveySubmit').addEventListener('click', function() {
-  const btn = this;
-  const warning = document.getElementById('surveyWarning');
+// ── 次へボタン ──
+document.getElementById('surveySubmit').addEventListener('click', async function() {
+  const currentFacility = _lastSortedFacilities[_currentSurveyFacilityIndex];
+  const facilityId = currentFacility ? currentFacility.id : null;
 
-  // ── ① 未回答チェック ──
-  const groups = ['call', 'accept', 'price'];
-  const allAnswered = groups.every(function(group) {
-    return document.querySelector(`.survey-btn.selected-good[data-group="${group}"],
-      .survey-btn.selected-normal[data-group="${group}"],
-      .survey-btn.selected-bad[data-group="${group}"],
-      .survey-btn.selected-unknown[data-group="${group}"]`);
-  });
-
-  if (!allAnswered) {
-    warning.textContent = '未選択の項目があります';
-    setTimeout(function() { warning.textContent = ''; }, 3000);
-    return;
+  // 1つでも入力があれば保存（未入力でも次へは押せる）
+  if (hasSurveyInput()) {
+    await saveSurveyResult(facilityId);
   }
 
-  // 警告クリア
-  warning.textContent = '';
+  // 「今日は表示しない」チェック
+  if (document.getElementById('noShowToday').checked) {
+    const today = new Date().toISOString().slice(0, 10);
+    localStorage.setItem('surveyNoShowDate', today);
+  }
 
-  // ── ② ボタンをローディング状態に ──
-  btn.disabled = true;
-  btn.textContent = '送信中...';
-
-  // ── ③ 送信処理（0.5秒後に実行） ──
-  setTimeout(async function() {
-
-    // 各グループの選択値を取得
-    const getValue = function(group) {
-      const sel = document.querySelector(
-        `.survey-btn[data-group="${group}"].selected-good,
-         .survey-btn[data-group="${group}"].selected-normal,
-         .survey-btn[data-group="${group}"].selected-bad,
-         .survey-btn[data-group="${group}"].selected-unknown`
-      );
-      return sel ? sel.dataset.value : null;
-    };
-
-    const result = {
-      call:   getValue('call'),
-      accept: getValue('accept'),
-      price:  getValue('price'),
-    };
-
-    // 「今日はもう表示しない」チェック処理
-    const noShow = document.getElementById('noShowToday').checked;
-    if (noShow) {
-      const today = new Date().toISOString().slice(0, 10);
-      localStorage.setItem('surveyNoShowDate', today);
-    }
-
-    // 既存の送信処理
-    localStorage.setItem('sanpai_feedback', JSON.stringify(result));
-
-    // ── Firestoreに保存 ──
-    if (window._firestoreReady) {
-      try {
-        await window._addDoc(window._collection(window._db, 'survey_results'), {
-          call:      result.call,
-          accept:    result.accept,
-          price:     result.price,
-          createdAt: window._serverTimestamp()
-        });
-        console.log('Firestore保存成功');
-      } catch (e) {
-        console.error('Firestore保存失敗:', e);
-      }
-    }
-
-    // localStorageのフラグをリセット
-    localStorage.setItem('surveyJustShown', 'false');
-
-    // ── ④ モーダルを閉じる ──
-    document.getElementById('surveyModal').style.display = 'none';
-
-    // ボタンを元に戻す
-    btn.disabled = false;
-    btn.textContent = '送信';
-
-    // ── ⑤ トースト表示 ──
-    const toast = document.getElementById('surveyToast');
-    toast.classList.add('show');
-    setTimeout(function() {
-      toast.classList.remove('show');
-    }, 2500);
-
-    console.log('アンケート送信:', result, 'noShow:', noShow);
-
-  }, 500);
+  localStorage.setItem('surveyJustShown', 'false');
+  closeSurveyModal();
+  moveToNextFacility();
 });
 
-// 背景クリックで閉じる
+// ── ✕閉じるボタン ──
+document.getElementById('surveyClose').addEventListener('click', async function() {
+  const currentFacility = _lastSortedFacilities[_currentSurveyFacilityIndex];
+  const facilityId = currentFacility ? currentFacility.id : null;
+
+  // 1つでも選択していたら保存（回収漏れ防止）
+  if (hasSurveyInput()) {
+    await saveSurveyResult(facilityId);
+  }
+
+  closeSurveyModal();
+});
+
+// ── 背景クリックで閉じる（保存なし） ──
 document.getElementById('surveyModal').addEventListener('click', function(e) {
-  if (e.target === this) {
-    this.style.display = 'none';
-  }
+  if (e.target === this) closeSurveyModal();
 });
 
-// ── アンケートポップアップ：ページ復帰検知ロジック ──
+// ── ページ復帰検知ロジック ──
 (function() {
-
-  // 復帰後にポップアップを表示する関数
   function tryShowSurvey() {
     const callFlag   = localStorage.getItem('callFlag');
     const leaveTime  = parseInt(localStorage.getItem('callLeaveTime') || '0', 10);
@@ -2040,52 +2069,36 @@ document.getElementById('surveyModal').addEventListener('click', function(e) {
     const today      = new Date().toISOString().slice(0, 10);
     const elapsed    = Date.now() - leaveTime;
 
-    // 表示条件を全チェック
-    if (callFlag !== 'true')  return; // 電話フラグなし
-    if (elapsed < 3000)       return; // 離脱3秒未満 → 誤爆防止
-    if (justShown === 'true') return; // 直前に表示済み
-    if (noShowDate === today)  return; // 今日はもう表示しない
+    if (callFlag !== 'true')  return;
+    if (elapsed < 3000)       return;
+    if (justShown === 'true') return;
+    if (noShowDate === today)  return;
 
-    // 全条件クリア → 2秒後に表示
+    // 施設ごとに1回チェック
+    const savedIdx = parseInt(localStorage.getItem('surveyFacilityIndex') || '0', 10);
+    const currentFacility = _lastSortedFacilities[savedIdx];
+    if (currentFacility) {
+      const shown = JSON.parse(localStorage.getItem('surveyShownFacilities') || '{}');
+      if (shown[currentFacility.id]) return; // この施設は表示済み
+    }
+
     setTimeout(function() {
-      // チェックボックスをリセット
-      const cb = document.getElementById('noShowToday');
-      if (cb) cb.checked = false;
-
-      // ボタン選択状態をリセットしてデフォルトを再適用
-      document.querySelectorAll('.survey-btn').forEach(function(b) {
-        b.classList.remove('selected', 'selected-good', 'selected-normal', 'selected-bad', 'selected-unknown');
-      });
-
-
-      // モーダル表示
-      const modal = document.getElementById('surveyModal');
-      if (modal) modal.style.display = 'flex';
-
-      // フラグ更新
+      openSurveyModal(savedIdx);
       localStorage.setItem('callFlag', 'false');
       localStorage.setItem('surveyJustShown', 'true');
     }, 2000);
   }
 
-  // visibilitychange（タブ切り替え・アプリ切り替えから戻る）
   document.addEventListener('visibilitychange', function() {
-    if (document.visibilityState === 'visible') {
-      tryShowSurvey();
-    }
+    if (document.visibilityState === 'visible') tryShowSurvey();
   });
-
-  // pageshow（ブラウザの戻るボタン対応）
   window.addEventListener('pageshow', function(e) {
-    if (e.persisted) {
-      tryShowSurvey();
-    }
+    if (e.persisted) tryShowSurvey();
   });
-
-  // focus（PCブラウザのウィンドウ切り替え対応）
   window.addEventListener('focus', function() {
     tryShowSurvey();
   });
+})();
 
 })();
 
