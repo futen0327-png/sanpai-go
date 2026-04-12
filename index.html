@@ -1520,10 +1520,17 @@ function calculateScore(facility, reviews, userLat, userLng) {
     }
   }
 
-  // 【5】最終スコア
+  // 【5】件数補正
+  const reviewCount = facilityReviews.length;
+  const countBonus   = Math.min(40, Math.log(reviewCount + 1) * 20);
+  const countPenalty = reviewCount === 1 ? -20 : 0;
+
+  // 【6】最終スコア
   const totalScore =
     distanceScore
     + reviewScore
+    + countBonus
+    + countPenalty
     + latestPenalty;
 
   return { totalScore, distance_km };
@@ -1562,31 +1569,29 @@ function updateByMapBounds() {
     filtered = filtered.filter(f => f.items.includes(category));
   }
 
-  // 表示範囲内に絞り込み
-  let inView = filtered.filter(f => bounds.contains([f.lat, f.lng]));
+  // ① 地図の表示範囲内の施設のみに限定
+  const inView = filtered.filter(f => bounds.contains([f.lat, f.lng]));
 
-  // 範囲内0件かつ検索条件ありの場合 → 検索結果全件を距離順で表示
-  if (inView.length === 0 && filtered.length > 0) {
-    inView = filtered;
-  } else if (inView.length === 0) {
-    return;
-  }
+  // 範囲内に施設が0件なら何もしない
+  if (inView.length === 0) return;
 
   // レビューデータ（現時点はダミー空配列。Firebase連携後に差し替え）
   const reviews = window._cachedReviews || [];
 
-  // スコア計算・降順ソート
-  inView = inView
-    .map(f => {
-      const { totalScore, distance_km } = calculateScore(f, reviews, center.lat, center.lng);
-      const distKm = Math.round(distance_km * 10) / 10;
-      return { ...f, _sortScore: totalScore, distance: distKm };
-    })
-    .sort((a, b) => b._sortScore - a._sortScore)
+  // ② スコア計算（範囲内施設のみ）
+  const facilitiesWithScore = inView.map(f => {
+    const { totalScore, distance_km } = calculateScore(f, reviews, center.lat, center.lng);
+    const distKm = Math.round(distance_km * 10) / 10;
+    return { ...f, _sortScore: totalScore, distance: distKm };
+  });
+
+  // ③ スコア降順ソート → 上位10件 → _sortScore除去
+  facilitiesWithScore.sort((a, b) => b._sortScore - a._sortScore);
+  const sortedFacilities = facilitiesWithScore
     .slice(0, 10)
     .map(({ _sortScore, ...f }) => f);
 
-  // ② トースト表示（0.5秒で消える）
+  // トースト表示（0.5秒で消える）
   const toast = document.getElementById('area-toast');
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 500);
@@ -1597,13 +1602,13 @@ function updateByMapBounds() {
   void label.offsetWidth; // リフロー強制（アニメリセット）
   label.classList.add('flash');
 
-  // ③ 前回1位の施設名を記録してからrenderList
-  const newTopName = inView[0]?.name || '';
+  // 前回1位の施設名を記録してからrenderList
+  const newTopName = sortedFacilities[0]?.name || '';
   const prevName = _prevTopName;
   _prevTopName = newTopName;
 
   // skipFitBounds=true で renderList を呼ぶ（ループ防止）
-  renderList(inView, true);
+  renderList(sortedFacilities, true);
 
   // ③ 前回1位カードにほんのり残留スタイルを付ける
   if (prevName && prevName !== newTopName) {
