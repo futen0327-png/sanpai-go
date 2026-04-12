@@ -610,6 +610,28 @@ body.map-expanded #map {
   flex-direction: column;
 }
 
+/* 地図ヒントメッセージ */
+#mapHint {
+  position: absolute;
+  bottom: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.62);
+  color: #fff;
+  font-size: 13px;
+  font-weight: bold;
+  padding: 7px 16px;
+  border-radius: 20px;
+  white-space: nowrap;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+#mapHint.show {
+  opacity: 1;
+}
+
 /* 閉じるボタン（通常時は非表示） */
 #map-close-btn {
   display: none;
@@ -1015,6 +1037,7 @@ body.map-expanded #map-close-btn {
 <div id="map-wrap">
   <div id="map"></div>
   <button id="map-close-btn">✕</button>
+  <div id="mapHint">👆 地図タップで拡大できます</div>
 </div>
 
 <!-- 一覧 -->
@@ -1942,6 +1965,13 @@ if ('serviceWorker' in navigator) {
       addHomeBtn.classList.remove('attention');
     }, { once: true });
   }, 3000);
+
+  // 地図ヒント（5秒後にフェードイン → 2秒表示 → フェードアウト）
+  setTimeout(() => {
+    const hint = document.getElementById('mapHint');
+    hint.classList.add('show');
+    setTimeout(() => hint.classList.remove('show'), 2000);
+  }, 5000);
 
 document.getElementById('addHomeInlineBtn').addEventListener('click', () => {
     document.getElementById('addHomePopup').classList.add('active');
