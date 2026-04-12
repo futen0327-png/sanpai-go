@@ -129,12 +129,9 @@ body {
 
 /* タブ */
 .tab-wrap {
-  display: none;
+  display: flex;
   gap: 8px;
   padding: 6px 10px 2px;
-}
-body.map-expanded .tab-wrap {
-  display: flex;
 }
 .tab-btn {
   flex: 1;
@@ -149,12 +146,6 @@ body.map-expanded .tab-wrap {
 .tab-btn.active {
   background: #1c6ea8;
   color: white;
-}
-.tab-btn.active .bookmark-icon path {
-  stroke: white;
-}
-.tab-btn:not(.active) .bookmark-icon path {
-  stroke: #555;
 }
 
 /* お気に入り空状態 */
@@ -1112,11 +1103,7 @@ body.map-expanded #map-close-btn {
 <div class="list-wrap">
   <div class="tab-wrap">
     <button class="tab-btn active" data-tab="list">一覧</button>
-    <button class="tab-btn" data-tab="fav">
-      <svg class="bookmark-icon" width="14" height="16" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:4px;">
-        <path d="M2 2h12v14l-6-3.5L2 16V2z" stroke-width="1.5" stroke-linejoin="round"/>
-      </svg>お気に入り
-    </button>
+    <button class="tab-btn" data-tab="fav">⭐ お気に入り</button>
   </div>
   <div class="list-label-wrap">
     <div class="list-label" id="listLabel">📍 このエリア内でおすすめ順</div>
@@ -1134,12 +1121,8 @@ body.map-expanded #map-close-btn {
 <div class="modal-overlay" id="addHomePopup">
   <div class="modal-box">
     <div class="modal-title">📱 ホーム画面に追加する方法</div>
-    <div class="modal-how-body">
-      このサイトはホーム画面に追加できます<br><br>
-      <strong>【手順】</strong><br>
-      ① 右上「︙」をタップ<br>
-      ②「ホーム画面に追加」を選択<br><br>
-      これで次回から1タップで開けます
+    <div class="modal-how-body" id="addHomeBody">
+      <!-- JSで切り替え -->
     </div>
     <button class="modal-btn-close" id="closeAddHomePopup">閉じる</button>
   </div>
@@ -2065,6 +2048,25 @@ if ('serviceWorker' in navigator) {
   }, 5000);
 
 document.getElementById('addHomeInlineBtn').addEventListener('click', () => {
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const body = document.getElementById('addHomeBody');
+    if (isIOS) {
+      body.innerHTML = `
+        このサイトはホーム画面に追加できます<br><br>
+        <strong>【手順】</strong><br>
+        ① 下部の <strong>共有ボタン（</strong> <span style="font-size:16px;">⬆</span> <strong>）</strong> をタップ<br>
+        ②「ホーム画面に追加」を選択<br><br>
+        これで次回から1タップで開けます
+      `;
+    } else {
+      body.innerHTML = `
+        このサイトはホーム画面に追加できます<br><br>
+        <strong>【手順】</strong><br>
+        ① 右上「︙」をタップ<br>
+        ②「ホーム画面に追加」を選択<br><br>
+        これで次回から1タップで開けます
+      `;
+    }
     document.getElementById('addHomePopup').classList.add('active');
   });
   document.getElementById('closeAddHomePopup').addEventListener('click', () => {
