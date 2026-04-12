@@ -1079,6 +1079,11 @@ body.map-expanded #map-close-btn {
   height: auto;
   display: block;
 }
+/* 2位以降の電話ボタン：70%に縮小 */
+.call-btn-sm .call-btn-img {
+  width: 70%;
+  margin: 0 auto;
+}
 </style>
 </head>
 <body>
@@ -1526,7 +1531,7 @@ function renderCard(f, num, isFeatured) {
         <span class="price-badge ${price.cls}">${price.label}</span>
       </div>
       <div style="padding:4px 0 2px;">
-        <button class="call-btn${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
+        <button class="call-btn call-btn-sm${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
           <img src="images/call-btn-normal.png" class="call-btn-img" alt="${callLabel}">
         </button>
       </div>
