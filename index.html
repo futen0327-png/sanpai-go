@@ -49,6 +49,31 @@ body {
   padding: 6px 10px;
 }
 
+/* もとに戻るボタン */
+#backToNormalBtn {
+  display: none;
+  background: #FF4081;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+  padding: 7px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  animation: backBtnPulse 1.8s ease-in-out infinite;
+}
+@keyframes backBtnPulse {
+  0%   { transform: scale(1);    box-shadow: 0 2px 6px rgba(255,64,129,0.3); }
+  50%  { transform: scale(1.06); box-shadow: 0 4px 12px rgba(255,64,129,0.5); }
+  100% { transform: scale(1);    box-shadow: 0 2px 6px rgba(255,64,129,0.3); }
+}
+#backToNormalBtn.show {
+  display: inline-block;
+}
+
 .logo {
   height: 34px;
   width: auto;
@@ -1183,6 +1208,7 @@ body.map-expanded #map-close-btn {
 <div class="logo-banner">
   <div class="header-inner">
     <img class="logo" src="./images/logo-pc.png" alt="さんぱいGO">
+    <button id="backToNormalBtn" onclick="switchToNormalTab()">もとに戻る</button>
     <div class="search-area">
       <div class="search-box">
         <div class="input-wrap">
@@ -1998,12 +2024,14 @@ function expandMap() {
   _mapExpanded = true;
   document.body.classList.add('map-expanded');
   setTimeout(() => map.invalidateSize(), 280);
+  updateBackToNormalBtn();
 }
 
 function collapseMap() {
   _mapExpanded = false;
   document.body.classList.remove('map-expanded');
   setTimeout(() => map.invalidateSize(), 280);
+  updateBackToNormalBtn();
 }
 
 // 地図タップ：拡大／縮小トグル
@@ -2517,8 +2545,26 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     render();
+    updateBackToNormalBtn();
   });
 });
+
+// 「もとに戻る」ボタンの表示制御
+function updateBackToNormalBtn() {
+  const btn = document.getElementById('backToNormalBtn');
+  const isExpanded = document.body.classList.contains('map-expanded');
+  // お気に入りタブ かつ 地図が縮小状態の時だけ表示
+  if (currentTab === 'fav' && !isExpanded) {
+    btn.classList.add('show');
+  } else {
+    btn.classList.remove('show');
+  }
+}
+
+// 通常タブに戻る
+function switchToNormalTab() {
+  document.querySelector('[data-tab="list"]').click();
+}
 
 /* ============================================
    ブックマーク機能
