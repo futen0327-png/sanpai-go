@@ -127,6 +127,64 @@ body {
   animation: bounce 0.6s ease 2;
 }
 
+/* タブ */
+.tab-wrap {
+  display: flex;
+  gap: 8px;
+  padding: 6px 10px 2px;
+}
+.tab-btn {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  background: #ddd;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 13px;
+  cursor: pointer;
+}
+.tab-btn.active {
+  background: #1c6ea8;
+  color: white;
+}
+
+/* お気に入り空状態 */
+.empty-fav {
+  padding: 40px 20px;
+  text-align: center;
+  color: #999;
+}
+.empty-fav-title {
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: #666;
+}
+.empty-fav-desc {
+  font-size: 13px;
+  line-height: 1.8;
+}
+.fav-icon-inline svg {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+}
+.fav-icon-inline svg path {
+  stroke: #888888;
+  fill: none;
+}
+.empty-fav-btn {
+  margin-top: 20px;
+  padding: 10px 24px;
+  background: #1c6ea8;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
 /* カード */
 .card {
   background: white;
@@ -1043,6 +1101,10 @@ body.map-expanded #map-close-btn {
 
 <!-- 一覧 -->
 <div class="list-wrap">
+  <div class="tab-wrap">
+    <button class="tab-btn active" data-tab="list">一覧</button>
+    <button class="tab-btn" data-tab="fav">⭐ お気に入り</button>
+  </div>
   <div class="list-label-wrap">
     <div class="list-label" id="listLabel">📍 このエリア内でおすすめ順</div>
     <button id="addHomeInlineBtn">次から一発で開く</button>
@@ -1384,6 +1446,10 @@ let activeMarkers = [];
 let _suppressMoveend = false;
 let _prevTopName = '';
 
+// タブ状態・スコア済み施設キャッシュ
+let currentTab = 'list';
+let _lastSortedFacilities = [];
+
 // カードHTML生成（全カード共通構造）
 function renderCard(f, num, isFeatured) {
   const price = priceMap[f.priceLevel];
@@ -1652,13 +1718,16 @@ function updateByMapBounds() {
   void label.offsetWidth; // リフロー強制（アニメリセット）
   label.classList.add('flash');
 
-  // ③ 前回1位の施設名を記録してからrenderList
+  // スコア済み施設をキャッシュ（タブ切り替えで再利用）
+  _lastSortedFacilities = inView;
+
+  // ③ 前回1位の施設名を記録してからrender
   const newTopName = inView[0]?.name || '';
   const prevName = _prevTopName;
   _prevTopName = newTopName;
 
-  // skipFitBounds=true で renderList を呼ぶ（ループ防止）
-  renderList(inView, true);
+  // skipFitBounds=true で render を呼ぶ（ループ防止）
+  render(true);
 
   // ③ 前回1位カードにほんのり残留スタイルを付ける
   if (prevName && prevName !== newTopName) {
@@ -1997,6 +2066,85 @@ document.getElementById('addHomeInlineBtn').addEventListener('click', () => {
 function promptAddHome() {}
 
 /* ============================================
+   タブ切り替え・render関数
+   ============================================ */
+
+function render(skipFitBounds = false) {
+  const bookmarks = getBookmarks();
+  const listEl = document.getElementById('list');
+
+  if (currentTab === 'fav') {
+    // お気に入りタブ：ブックマーク済み施設のみ（全施設から）
+    const favList = facilities.filter(f => bookmarks[f.id]);
+
+    // 地図ピンをお気に入りのみに絞る
+    activeMarkers.forEach(m => map.removeLayer(m));
+    activeMarkers = [];
+    favList.forEach(f => {
+      const icon = L.divIcon({
+        className: '',
+        html: `<div style="width:28px;height:28px;background:#FF4081;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:16px;border:2px solid white;box-shadow:0 2px 5px rgba(0,0,0,0.35);">★</div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14]
+      });
+      const marker = L.marker([f.lat, f.lng], { icon }).addTo(map).bindPopup(`<b>${f.name}</b>`);
+      activeMarkers.push(marker);
+    });
+
+    // 空状態
+    if (favList.length === 0) {
+      listEl.innerHTML = `
+        <div class="empty-fav">
+          <div class="empty-fav-title">お気に入りはまだありません</div>
+          <div class="empty-fav-desc">
+            右上の
+            <span class="fav-icon-inline">
+              <svg class="bookmark-icon" width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 2h12v14l-6-3.5L2 16V2z" stroke-width="1.5" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            ボタンで登録すると表示されます
+          </div>
+          <button class="empty-fav-btn" id="goListBtn">一覧を見る</button>
+        </div>
+      `;
+      document.getElementById('goListBtn').onclick = () => {
+        document.querySelector('[data-tab="list"]').click();
+      };
+      return;
+    }
+
+    // お気に入りカード描画
+    listEl.innerHTML = '';
+    favList.forEach((f, i) => {
+      const card = document.createElement('div');
+      card.className = 'card' + (i === 0 ? ' top-card' : '');
+      card.innerHTML = renderCard(f, i + 1, i === 0);
+      card.addEventListener('click', () => {
+        _suppressMoveend = true;
+        map.setView([f.lat, f.lng], 15);
+      });
+      listEl.appendChild(card);
+    });
+    initBookmarks();
+
+  } else {
+    // 一覧タブ：キャッシュ済みスコア施設を表示
+    renderList(_lastSortedFacilities, skipFitBounds);
+  }
+}
+
+// タブクリック処理
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentTab = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+  });
+});
+
+/* ============================================
    ブックマーク機能
    ============================================ */
 
@@ -2026,6 +2174,8 @@ function toggleBookmark(event, facilityId) {
     btn.classList.add('saved');
   }
   saveBookmarks(bookmarks);
+  // お気に入りタブ表示中なら即時再描画
+  if (currentTab === 'fav') render();
 }
 
 function initBookmarks() {
