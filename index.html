@@ -1658,7 +1658,9 @@ function renderList(data, skipFitBounds = false) {
 
       if (isTestMode) {
         e.preventDefault();
-        alert('現在テスト中のため電話は利用できません');
+        // テストモード：電話の代わりに直接アンケートを表示
+        localStorage.setItem('surveyJustShown', 'false');
+        setTimeout(() => openSurveyModal(_currentSurveyFacilityIndex), 500);
       } else {
         const phone = this.dataset.phone;
         if (phone) window.location.href = 'tel:' + phone;
@@ -1923,7 +1925,7 @@ function openSurveyModal(facilityIndex) {
   document.querySelectorAll('.survey-btn').forEach(function(b) {
     b.classList.remove('selected', 'selected-good', 'selected-normal', 'selected-bad', 'selected-unknown');
   });
-  document.getElementById('surveyWarning').textContent = '';
+  const _w = document.getElementById('surveyWarning'); if (_w) _w.textContent = '';
 
   // モーダルを表示
   document.getElementById('surveyModal').style.display = 'flex';
