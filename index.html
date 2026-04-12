@@ -1215,7 +1215,7 @@ body.map-expanded #map-close-btn {
 <!-- 一覧 -->
 <div class="list-wrap">
   <div class="tab-wrap">
-    <button class="tab-btn active" data-tab="list">一覧</button>
+    <button class="tab-btn active" data-tab="list">通常</button>
     <button class="tab-btn" data-tab="fav">
       <svg class="bookmark-icon" width="14" height="16" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg" style="vertical-align:middle;margin-right:4px;">
         <path d="M2 2h12v14l-6-3.5L2 16V2z" stroke-width="1.5" stroke-linejoin="round"/>
@@ -1645,19 +1645,15 @@ function renderCard(f, num, isFeatured, isFav = false) {
     <div class="card-body">
       <div class="card-name">
         <span class="card-num">${num}</span>${f.name}
-        <span class="top-badge">今すぐ行ける可能性高い</span>
-        <span class="accordion-arrow">▼ 詳細</span>
+        ${isFav ? '' : '<span class="top-badge">今すぐ行ける可能性高い</span>'}
+        ${isFav ? '' : '<span class="accordion-arrow">▼ 詳細</span>'}
       </div>
-      <div class="card-meta">
+      <div class="card-meta" style="align-items:center;">
         <span class="card-distance">📍 ${f.distance}km</span>
         ${price.label ? `<span class="price-badge ${price.cls}">${price.label}</span>` : ''}
-        ${isFav ? `
-        <button class="call-btn-inline${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()" style="margin-left:8px;margin-right:32px;">
+        <button class="call-btn-inline${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()" style="margin-left:auto;margin-right:36px;">
           <img src="images/call-btn-normal.png" alt="📞電話">
-        </button>` : `
-        <button class="call-btn-inline${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
-          <img src="images/call-btn-normal.png" alt="📞電話">
-        </button>`}
+        </button>
       </div>
       <div class="card-accordion">
         <div class="card-accordion-inner">
