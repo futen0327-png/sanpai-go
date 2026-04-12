@@ -297,6 +297,31 @@ body.map-expanded .tab-wrap {
   font-size: 12px;
   color: #888;
 }
+
+/* アコーディオン */
+.card-accordion {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease;
+}
+.card.open .card-accordion {
+  max-height: 300px;
+}
+.card-accordion-inner {
+  padding: 6px 0 4px;
+  border-top: 1px solid #eee;
+  margin-top: 4px;
+}
+.accordion-arrow {
+  display: inline-block;
+  font-size: 10px;
+  color: #aaa;
+  margin-left: 6px;
+  transition: transform 0.3s ease;
+}
+.card.open .accordion-arrow {
+  transform: rotate(180deg);
+}
 .card-phone {
   font-size: 12px;
   color: #bbb;
@@ -1447,6 +1472,43 @@ function renderCard(f, num, isFeatured) {
   const callLabel = isTestMode
     ? (isFeatured ? '🔥 今すぐ電話（ここが一番近い）（テスト中）' : '今すぐ電話する（テスト中）')
     : (isFeatured ? '🔥 今すぐ電話（ここが一番近い）' : '今すぐ電話する');
+  // 1位：フル表示
+  if (isFeatured) {
+    return `
+    <button class="bookmark-btn" id="bookmark-${f.id}" onclick="toggleBookmark(event, '${f.id}')" aria-label="お気に入り登録">
+      <svg class="bookmark-icon" width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 2h12v14l-6-3.5L2 16V2z" stroke-width="1.5" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="card-body">
+      <div class="card-name">
+        <span class="card-num">${num}</span>${f.name}
+        <span class="no1-badge">🏆 一番近い</span>
+      </div>
+      ${f.address ? `<div class="card-address">📌 ${f.address}</div>` : ''}
+      <div class="card-meta">
+        <span class="card-distance">📍 ${f.distance}km</span>
+        <span class="price-badge ${price.cls}">${price.label}</span>
+      </div>
+      <div class="call-hint">空いてるかだけでもOK</div>
+    </div>
+    <div class="card-actions">
+      <div class="btn-row">
+        <button class="call-btn top-call${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
+          <img src="images/call-btn-top.png" class="call-btn-img" alt="${callLabel}">
+        </button>
+        <div class="line-group">
+          <button class="line-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\'")}','${isTestMode ? '' : f.phone}','${f.items.replace(/'/g,"\'")}','${f.lat}','${f.lng}')">
+            <img src="images/line-btn.png">
+          </button>
+          <div class="line-sub">LINEで確認</div>
+        </div>
+      </div>
+    </div>
+  `;
+  }
+
+  // 2位以降：アコーディオン
   return `
     <button class="bookmark-btn" id="bookmark-${f.id}" onclick="toggleBookmark(event, '${f.id}')" aria-label="お気に入り登録">
       <svg class="bookmark-icon" width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1456,32 +1518,37 @@ function renderCard(f, num, isFeatured) {
     <div class="card-body">
       <div class="card-name">
         <span class="card-num">${num}</span>${f.name}
-      ${isFeatured ? '<span class="no1-badge">🏆 一番近い</span>' : '<span class="top-badge">今すぐ行ける可能性高い</span>'}
+        <span class="top-badge">今すぐ行ける可能性高い</span>
+        <span class="accordion-arrow">▼</span>
       </div>
-      ${f.address ? `<div class="card-address">📌 ${f.address}</div>` : ''}
       <div class="card-meta">
         <span class="card-distance">📍 ${f.distance}km</span>
         <span class="price-badge ${price.cls}">${price.label}</span>
-        ${isFeatured ? '<span class="no1-badge meta-badge">🏆 一番近い</span>' : ''}
       </div>
-      <div class="card-items">受入品目：${f.items}</div>
-      <div class="call-hint">空いてるかだけでもOK</div>
-    </div>
-    <div class="card-actions">
-      <div class="btn-row">
-        <button class="call-btn${isFeatured ? ' top-call' : ''}${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
-          <img src="images/${isFeatured ? 'call-btn-top' : 'call-btn-normal'}.png" class="call-btn-img" alt="${callLabel}">
+      <div style="padding:4px 0 2px;">
+        <button class="call-btn${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()">
+          <img src="images/call-btn-normal.png" class="call-btn-img" alt="${callLabel}">
         </button>
-        <div class="line-group">
-          <button class="line-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\\'")}','${isTestMode ? '' : f.phone}','${f.items.replace(/'/g,"\\'")}','${f.lat}','${f.lng}')">
-            <img src="images/line-btn.png">
-          </button>
-          <div class="line-sub">LINEで確認</div>
+      </div>
+      <div class="card-accordion">
+        <div class="card-accordion-inner">
+          ${f.address ? `<div class="card-address">📌 ${f.address}</div>` : ''}
+          <div class="card-items" style="margin-bottom:6px;">受入品目：${f.items}</div>
+          <div class="call-hint">空いてるかだけでもOK</div>
+          <div class="btn-row" style="margin-top:6px;">
+            <div class="line-group">
+              <button class="line-btn" onclick="event.stopPropagation();sendToLine('${f.name.replace(/'/g,"\'")}','${isTestMode ? '' : f.phone}','${f.items.replace(/'/g,"\'")}','${f.lat}','${f.lng}')">
+                <img src="images/line-btn.png">
+              </button>
+              <div class="line-sub">LINEで確認</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   `;
 }
+
 
 // カード＋マーカー描画（skipFitBounds=true のとき地図自動ズームをスキップ）
 function renderList(data, skipFitBounds = false) {
@@ -1530,6 +1597,12 @@ function renderList(data, skipFitBounds = false) {
 
     card.dataset.facilityId = i;
     card.addEventListener('click', () => {
+      if (!isTop) {
+        // 2位以降：アコーディオン開閉
+        card.classList.toggle('open');
+        return;
+      }
+      // 1位：地図移動
       _suppressMoveend = true;
       map.setView([f.lat, f.lng], 15);
       marker.openPopup();
