@@ -984,6 +984,81 @@ body.map-expanded #map-close-btn {
   font-size: 0.78rem;
 }
 
+/* お気に入りアンケートモーダル */
+#favSurveyModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 3000;
+  align-items: center;
+  justify-content: center;
+}
+.fav-survey-content {
+  background: white;
+  border-radius: 16px;
+  padding: 20px 20px 16px;
+  width: 280px;
+  text-align: center;
+}
+.fav-survey-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 14px;
+}
+.fav-survey-options {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.fav-survey-btn {
+  width: 72px;
+  height: 56px;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  background: #f9f9f9;
+  font-size: 22px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+.fav-survey-btn span.fav-btn-label {
+  font-size: 11px;
+  color: #888;
+}
+.fav-survey-btn.selected-good {
+  background: #e8f5e9;
+  border-color: #4caf50;
+}
+.fav-survey-btn.selected-normal {
+  background: #fff8e1;
+  border-color: #ff9800;
+}
+.fav-survey-btn.selected-bad {
+  background: #fdecea;
+  border-color: #e53935;
+}
+.fav-survey-divider {
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 12px 0;
+}
+.fav-survey-close {
+  width: 100%;
+  padding: 10px;
+  border: none;
+  background: #f0f0f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+}
+
 /* アンケート送信フィードバック トースト */
 .survey-toast {
   position: fixed;
@@ -1169,6 +1244,29 @@ body.map-expanded #map-close-btn {
 <!-- トースト通知 -->
 <div class="toast" id="toast"></div>
 
+
+<!-- お気に入りアンケートモーダル -->
+<div id="favSurveyModal">
+  <div class="fav-survey-content">
+    <div class="fav-survey-title">📞 どうでした？</div>
+    <div class="fav-survey-options">
+      <button class="fav-survey-btn" data-value="good">
+        <span>◎</span>
+        <span class="fav-btn-label">良い</span>
+      </button>
+      <button class="fav-survey-btn" data-value="normal">
+        <span>○</span>
+        <span class="fav-btn-label">普通</span>
+      </button>
+      <button class="fav-survey-btn" data-value="bad">
+        <span>×</span>
+        <span class="fav-btn-label">NG</span>
+      </button>
+    </div>
+    <hr class="fav-survey-divider">
+    <button class="fav-survey-close" id="favSurveyClose">閉じる</button>
+  </div>
+</div>
 
 <!-- アンケート送信フィードバック トースト -->
 <div id="surveyToast" class="survey-toast">ご協力ありがとうございました。</div>
@@ -1656,22 +1754,39 @@ function renderList(data, skipFitBounds = false) {
         localStorage.setItem('surveyFacilityIndex', idx.toString());
       }
 
+      // お気に入りタブかどうかでアンケートの種類を分岐
+      const isFavTab = currentTab === 'fav';
+      const callerCard = btn.closest('.card');
+      const favFacilityId = callerCard ? callerCard.dataset.favFacilityId : null;
+
       if (isTestMode) {
         e.preventDefault();
-        // テストモード：電話の代わりに直接アンケートを表示
-        localStorage.setItem('surveyJustShown', 'false');
-        setTimeout(() => openSurveyModal(_currentSurveyFacilityIndex), 500);
+        if (isFavTab) {
+          // テストモード：お気に入りアンケートを直接表示
+          setTimeout(() => openFavSurveyModal(favFacilityId), 500);
+        } else {
+          // テストモード：通常アンケートを直接表示
+          localStorage.setItem('surveyJustShown', 'false');
+          setTimeout(() => openSurveyModal(_currentSurveyFacilityIndex), 500);
+        }
       } else {
         const phone = this.dataset.phone;
         if (phone) window.location.href = 'tel:' + phone;
       }
       promptAddHome();
-      // 電話ボタンを押したフラグを立てる
       sessionStorage.setItem('sanpai_called', '1');
-      // ── アンケート表示用フラグを記録（電話ボタン押下時）──
-      localStorage.setItem('callFlag', 'true');
-      localStorage.setItem('callLeaveTime', Date.now().toString());
-      localStorage.setItem('surveyJustShown', 'false');
+
+      if (isFavTab) {
+        // お気に入りタブ経由フラグ
+        localStorage.setItem('favCallFlag', 'true');
+        localStorage.setItem('favCallFacilityId', favFacilityId || '');
+        localStorage.setItem('favCallLeaveTime', Date.now().toString());
+      } else {
+        // 通常アンケートフラグ
+        localStorage.setItem('callFlag', 'true');
+        localStorage.setItem('callLeaveTime', Date.now().toString());
+        localStorage.setItem('surveyJustShown', 'false');
+      }
     });
   });
 
@@ -1930,6 +2045,128 @@ function openSurveyModal(facilityIndex) {
   // モーダルを表示
   document.getElementById('surveyModal').style.display = 'flex';
 }
+
+// ── お気に入りアンケート JS ──
+
+let _favSurveyFacilityId = null;
+let _favSurveySelected = null;
+let _favSaveTimer = null;
+
+function openFavSurveyModal(facilityId) {
+  const noShowDate = localStorage.getItem('surveyNoShowDate');
+  const today = new Date().toISOString().slice(0, 10);
+  if (noShowDate === today) return;
+
+  // 1施設1日1回チェック
+  const favShown = JSON.parse(localStorage.getItem('favSurveyShown') || '{}');
+  if (favShown[facilityId] === today) return;
+
+  _favSurveyFacilityId = facilityId;
+  _favSurveySelected = null;
+
+  // ボタンリセット
+  document.querySelectorAll('.fav-survey-btn').forEach(b => {
+    b.classList.remove('selected-good', 'selected-normal', 'selected-bad');
+  });
+
+  document.getElementById('favSurveyModal').style.display = 'flex';
+}
+
+function closeFavSurveyModal() {
+  document.getElementById('favSurveyModal').style.display = 'none';
+}
+
+async function saveFavSurveyResult(value, facilityId) {
+  const result = {
+    overall: value,
+    facilityId: facilityId,
+    source: 'favorite',
+    createdAt: new Date().toISOString()
+  };
+  localStorage.setItem('sanpai_fav_feedback', JSON.stringify(result));
+
+  // 表示済みフラグ（1日1回）
+  const today = new Date().toISOString().slice(0, 10);
+  const favShown = JSON.parse(localStorage.getItem('favSurveyShown') || '{}');
+  favShown[facilityId] = today;
+  localStorage.setItem('favSurveyShown', JSON.stringify(favShown));
+
+  if (window._firestoreReady) {
+    try {
+      await window._addDoc(window._collection(window._db, 'fav_survey_results'), {
+        overall: value,
+        facilityId: facilityId,
+        source: 'favorite',
+        createdAt: window._serverTimestamp()
+      });
+    } catch(e) {
+      console.error('Firestore保存失敗:', e);
+    }
+  }
+}
+
+// ボタンタップ → 即保存
+document.querySelectorAll('.fav-survey-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const value = this.dataset.value;
+    _favSurveySelected = value;
+
+    // 選択表示
+    document.querySelectorAll('.fav-survey-btn').forEach(b => {
+      b.classList.remove('selected-good', 'selected-normal', 'selected-bad');
+    });
+    this.classList.add(`selected-${value}`);
+
+    // 0.3秒後に保存（上書き可能）
+    clearTimeout(_favSaveTimer);
+    _favSaveTimer = setTimeout(() => {
+      saveFavSurveyResult(value, _favSurveyFacilityId);
+    }, 300);
+  });
+});
+
+// 閉じるボタン
+document.getElementById('favSurveyClose').addEventListener('click', async function() {
+  if (_favSurveySelected) {
+    clearTimeout(_favSaveTimer);
+    await saveFavSurveyResult(_favSurveySelected, _favSurveyFacilityId);
+  }
+  closeFavSurveyModal();
+});
+
+// 背景クリックで閉じる
+document.getElementById('favSurveyModal').addEventListener('click', function(e) {
+  if (e.target === this) closeFavSurveyModal();
+});
+
+// ページ復帰時のお気に入りアンケート表示
+(function() {
+  function tryShowFavSurvey() {
+    const favCallFlag = localStorage.getItem('favCallFlag');
+    const leaveTime = parseInt(localStorage.getItem('favCallLeaveTime') || '0', 10);
+    const facilityId = localStorage.getItem('favCallFacilityId');
+    const noShowDate = localStorage.getItem('surveyNoShowDate');
+    const today = new Date().toISOString().slice(0, 10);
+    const elapsed = Date.now() - leaveTime;
+
+    if (favCallFlag !== 'true') return;
+    if (elapsed < 3000) return;
+    if (noShowDate === today) return;
+
+    localStorage.setItem('favCallFlag', 'false');
+    setTimeout(() => openFavSurveyModal(facilityId), 1000);
+  }
+
+  document.addEventListener('visibilitychange', function() {
+    if (document.visibilityState === 'visible') tryShowFavSurvey();
+  });
+  window.addEventListener('pageshow', function(e) {
+    if (e.persisted) tryShowFavSurvey();
+  });
+  window.addEventListener('focus', function() {
+    tryShowFavSurvey();
+  });
+})();
 
 // ── アンケート JS（完全版）──
 
@@ -2231,6 +2468,7 @@ function render(skipFitBounds = false) {
       const card = document.createElement('div');
       card.className = 'card' + (i === 0 ? ' top-card' : '');
       card.innerHTML = renderCard(f, i + 1, i === 0);
+      card.dataset.favFacilityId = f.id;
       card.addEventListener('click', () => {
         _suppressMoveend = true;
         map.setView([f.lat, f.lng], 15);
