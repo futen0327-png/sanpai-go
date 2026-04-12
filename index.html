@@ -632,28 +632,6 @@ body.map-expanded #map {
   opacity: 1;
 }
 
-/* 現在地移動バナー */
-#relocateBar {
-  display: none;
-  position: absolute;
-  bottom: 36px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1001;
-  background: #1976d2;
-  color: #fff;
-  font-size: 13px;
-  font-weight: bold;
-  padding: 8px 16px;
-  border-radius: 20px;
-  white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-  cursor: pointer;
-  border: none;
-}
-#relocateBar:active {
-  background: #1256a0;
-}
 
 /* 閉じるボタン（通常時は非表示） */
 #map-close-btn {
@@ -1061,7 +1039,6 @@ body.map-expanded #map-close-btn {
   <div id="map"></div>
   <button id="map-close-btn">✕</button>
   <div id="mapHint">👆 地図タップで拡大できます</div>
-  <button id="relocateBar">📍 現在地に移動しますか？</button>
 </div>
 
 <!-- 一覧 -->
@@ -1383,16 +1360,6 @@ function setUserLocation(lat, lng) {
   localStorage.setItem('lastLat', lat);
   localStorage.setItem('lastLng', lng);
 
-  // 前回位置と現在地の距離を計算して5km超なら移動バナーを表示
-  const dist = calcDistance(lat, lng, _savedLat, _savedLng);
-  const relocateBar = document.getElementById('relocateBar');
-  if (dist > 5) {
-    relocateBar.style.display = 'block';
-    relocateBar.onclick = () => {
-      map.setView([lat, lng], 12);
-      relocateBar.style.display = 'none';
-    };
-  }
 
   if (userMarker) map.removeLayer(userMarker);
   userMarker = L.circleMarker([lat, lng], {
