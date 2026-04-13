@@ -1254,6 +1254,16 @@ body.map-expanded #map-close-btn {
   animation: locatePulse 0.6s ease 2;
 }
 
+/* 帯カード：スライドアップ消去アニメーション */
+@keyframes bannerSlideUp {
+  0%   { max-height: 300px; opacity: 1; margin-bottom: 10px; }
+  100% { max-height: 0; opacity: 0; margin-bottom: 0; padding: 0; overflow: hidden; }
+}
+.shared-banner-card.dismissing {
+  animation: bannerSlideUp 0.35s ease forwards;
+  pointer-events: none;
+}
+
 </style>
 </head>
 <body>
@@ -2100,13 +2110,63 @@ document.getElementById('map-close-btn').addEventListener('click', (e) => {
 
 // 地図移動終了トリガー（moveend = 指を離した瞬間）
 // プログラム側からの移動（setView・fitBounds）は無視する
+
+// 帯解除用：ドラッグ開始地点を記録
+let _dragStartPoint = null;
+
+map.on('mousedown touchstart', function(e) {
+  const point = e.containerPoint || (e.touches && e.touches[0] && map.mouseEventToContainerPoint(e.originalEvent.touches[0]));
+  if (point) _dragStartPoint = point;
+});
+
 map.on('moveend', () => {
   if (_suppressMoveend) {
     _suppressMoveend = false;
     return;
   }
+
+  // 帯が表示中かチェック
+  const banner = document.getElementById('list').querySelector('.shared-banner-card');
+  if (banner && _dragStartPoint) {
+    // ドラッグ距離を計算（ピクセル）
+    const center = map.getSize().divideBy(2);
+    const dx = center.x - _dragStartPoint.x;
+    const dy = center.y - _dragStartPoint.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist >= 100) {
+      // 100px以上ドラッグ → 帯をスライドアップで消去
+      dismissBanner(banner);
+      return; // updateByMapBoundsはdismissBanner内で呼ぶ
+    } else {
+      // 100px未満 → 帯を維持・ランキング更新しない
+      return;
+    }
+  }
+
   updateByMapBounds();
 });
+
+map.on('zoomend', () => {
+  if (_suppressMoveend) return;
+
+  // ズーム変更時も帯を解除
+  const banner = document.getElementById('list').querySelector('.shared-banner-card');
+  if (banner) {
+    dismissBanner(banner);
+    return;
+  }
+  updateByMapBounds();
+});
+
+// 帯スライドアップ消去関数
+function dismissBanner(banner) {
+  banner.classList.add('dismissing');
+  banner.addEventListener('animationend', function() {
+    banner.remove();
+    updateByMapBounds();
+  }, { once: true });
+}
 
 // ── アンケートモーダルを開く関数 ──
 function openSurveyModal(facilityIndex) {
@@ -2432,13 +2492,13 @@ updateByMapBounds();
 document.getElementById('locateBtn').addEventListener('click', function() {
   const btn = this;
 
-  // ?id=xxx モード中なら帯を消して通常モードへ
+  // ?id=xxx モード中なら帯をスライドアップで消去
   const banner = document.getElementById('list').querySelector('.shared-banner-card');
-  if (banner) banner.remove();
+  if (banner) dismissBanner(banner);
 
   // ローディング状態
   btn.classList.add('loading');
-  btn.textContent = '取得中...';
+  btn.innerHTML = '取得中...';
 
   if (!navigator.geolocation) {
     // geolocation非対応ブラウザ
@@ -2459,7 +2519,7 @@ document.getElementById('locateBtn').addEventListener('click', function() {
 
       setUserLocation(pos.coords.latitude, pos.coords.longitude, true);
 
-      // 地図移動完了後にランキング更新
+      // flyToアニメーション完了後にランキング更新
       setTimeout(function() {
         _suppressMoveend = true;
         updateByMapBounds();
