@@ -1205,16 +1205,20 @@ body.map-expanded #map-close-btn {
   border: 2px solid #1c6ea8 !important;
   box-shadow: 0 0 0 4px rgba(28, 110, 168, 0.25) !important;
   background: #e8f4fd !important;
+  overflow: visible !important;
 }
-.shared-label {
-  display: inline-block;
+
+/* 帯：カード上部を横断するフルwidth帯 */
+.shared-banner-strip {
+  display: block;
+  width: 100%;
   background: #1c6ea8;
   color: white;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: bold;
-  padding: 2px 8px;
-  border-radius: 10px;
-  margin-bottom: 6px;
+  padding: 5px 12px;
+  letter-spacing: 0.03em;
+  box-sizing: border-box;
 }
 
 /* 現在地ボタン（地図右下） */
@@ -1788,16 +1792,29 @@ function renderList(data, skipFitBounds = false) {
 
     // マーカー生成（番号付き・1位は色違い）
     const isTop = num === 1;
+    const isBannerMode = !!window._sharedBannerMode;
+    // 帯モード中は薄青系、通常は既存色
+    const bgColor = isBannerMode
+      ? (isTop ? '#90CAF9' : '#64B5F6')
+      : (isTop ? '#FFD700' : '#e53935');
+    const textColor = isBannerMode ? '#0d47a1' : (isTop ? '#333' : 'white');
+    const borderColor = isBannerMode
+      ? (isTop ? '#42A5F5' : 'white')
+      : (isTop ? '#C9A200' : 'white');
+    const shadowColor = isBannerMode
+      ? '0 3px 8px rgba(30,100,200,0.35)'
+      : (isTop ? '0 3px 8px rgba(0,0,0,0.45)' : '0 2px 5px rgba(0,0,0,0.35)');
+
     const icon = L.divIcon({
       className: '',
       html: `<div style="
         width:28px;height:28px;
-        background:${isTop ? '#FFD700' : '#e53935'};
-        color:${isTop ? '#333' : 'white'};
+        background:${bgColor};
+        color:${textColor};
         border-radius:50%;display:flex;align-items:center;justify-content:center;
         font-weight:bold;font-size:14px;
-        border:2px solid ${isTop ? '#C9A200' : 'white'};
-        box-shadow:${isTop ? '0 3px 8px rgba(0,0,0,0.45)' : '0 2px 5px rgba(0,0,0,0.35)'};">${num}</div>`,
+        border:2px solid ${borderColor};
+        box-shadow:${shadowColor};">${num}</div>`,
       iconSize: [28, 28],
       iconAnchor: [14, 14]
     });
@@ -2168,6 +2185,7 @@ function dismissBanner(banner) {
   banner.classList.add('dismissing');
   banner.addEventListener('animationend', function() {
     banner.remove();
+    window._sharedBannerMode = false; // 帯モード解除→マーカーを通常色に戻す
     updateByMapBounds();
   }, { once: true });
 }
@@ -2560,6 +2578,9 @@ document.getElementById('locateBtn').addEventListener('click', function() {
     _suppressMoveend = true;
     map.setView([target.lat, target.lng], 15);
 
+    // 帯モード中はマーカーを薄青系に変更するフラグ
+    window._sharedBannerMode = true;
+
     // ② スコアランキングから共有施設を除外して再描画（繰り上げ）
     // ※ map.setView後にupdateByMapBoundsが走るので、
     //   ここではフィルターせず帯挿入のみ行う
@@ -2584,15 +2605,20 @@ document.getElementById('locateBtn').addEventListener('click', function() {
       // 別枠帯カードを生成
       const banner = document.createElement('div');
       banner.className = 'card shared-highlight-card shared-banner-card';
+      // 距離計算（userLat/userLngが取得済みなら実距離、未取得なら非表示）
+      const _bannerDist = (userLat && userLng)
+        ? (Math.round(calcDistance(userLat, userLng, target.lat, target.lng) * 10) / 10) + 'km'
+        : null;
+
       banner.innerHTML = `
+        <div class="shared-banner-strip">｜ここどうですか？</div>
         <div class="card-body">
-          <div class="shared-label">📩 共有された施設</div>
           <div class="card-name" style="font-size:15px;font-weight:bold;margin-bottom:4px;">
             ${target.name}
           </div>
           ${target.address ? `<div class="card-address">📌 ${target.address}</div>` : ''}
           <div class="card-meta">
-            <span class="card-distance">📍 ${target.distance ?? 0}km</span>
+            ${_bannerDist ? `<span class="card-distance">📍 ${_bannerDist}</span>` : ''}
           </div>
         </div>
         <div class="card-actions">
