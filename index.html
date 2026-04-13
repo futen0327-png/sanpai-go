@@ -1259,6 +1259,51 @@ body.map-expanded #map-close-btn {
   animation: locatePulse 0.6s ease 2;
 }
 
+/* 距離表示ボタン（地図右下・現在地ボタンの下） */
+#distanceBtn {
+  position: absolute;
+  bottom: 4px;
+  right: 10px;
+  z-index: 1000;
+  background: white;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #1c6ea8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s;
+}
+#distanceBtn:active {
+  background: #f0f0f0;
+}
+#distanceBtn.loading {
+  color: #aaa;
+  pointer-events: none;
+}
+/* 距離表示済み状態 */
+#distanceBtn.active {
+  background: #e8f4fd;
+  color: #1c6ea8;
+}
+/* カード内距離バッジ */
+.distance-badge {
+  font-size: 12px;
+  color: #1c6ea8;
+  font-weight: bold;
+  background: #e8f4fd;
+  border-radius: 10px;
+  padding: 2px 8px;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
 /* 帯カード：スライドアップ消去アニメーション */
 @keyframes bannerSlideUp {
   0%   { max-height: 300px; opacity: 1; margin-bottom: 10px; }
@@ -1306,6 +1351,7 @@ body.map-expanded #map-close-btn {
   <button id="map-close-btn">✕</button>
   <div id="mapHint">👆 地図タップで拡大できます</div>
   <button id="locateBtn">📍 現在地</button>
+  <button id="distanceBtn">📏 距離を表示</button>
 </div>
 
 <!-- 一覧 -->
@@ -1707,7 +1753,7 @@ function renderCard(f, num, isFeatured, isFav = false) {
       </div>
       ${f.address ? `<div class="card-address">📌 ${f.address}</div>` : ''}
       <div class="card-meta">
-        <span class="card-distance">📍 ${f.distance}km</span>
+        <span class="card-distance" data-lat="${f.lat}" data-lng="${f.lng}"></span>
         ${price.label ? `<span class="price-badge ${price.cls}">${price.label}</span>` : ''}
       </div>
       ${isFav ? '' : '<div class="call-hint">空いてるかだけでもOK</div>'}
@@ -1742,7 +1788,7 @@ function renderCard(f, num, isFeatured, isFav = false) {
         ${isFav ? '' : '<span class="accordion-arrow">▼ 詳細</span>'}
       </div>
       <div class="card-meta" style="align-items:center;">
-        <span class="card-distance">📍 ${f.distance}km</span>
+        <span class="card-distance" data-lat="${f.lat}" data-lng="${f.lng}"></span>
         ${price.label ? `<span class="price-badge ${price.cls}">${price.label}</span>` : ''}
         <button class="call-btn-inline${isTestMode ? ' disabled' : ''}" data-phone="${f.phone}" onclick="event.stopPropagation()" style="margin-left:auto;margin-right:36px;">
           <img src="images/call-btn-normal.png" alt="📞電話">
@@ -1908,6 +1954,11 @@ function renderList(data, skipFitBounds = false) {
     _suppressMoveend = true;
     const bounds = L.latLngBounds(data.map(f => [f.lat, f.lng]));
     map.fitBounds(bounds, { padding: [40, 40] });
+  }
+
+  // 距離取得済みなら再描画後も距離を表示
+  if (userLat && userLng) {
+    setTimeout(function() { showDistanceOnCards(userLat, userLng); }, 50);
   }
 }
 
@@ -2558,6 +2609,62 @@ document.getElementById('locateBtn').addEventListener('click', function() {
     { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
   );
 });
+
+// ────────────────────────────────────────
+// 距離表示ボタン
+// ────────────────────────────────────────
+document.getElementById('distanceBtn').addEventListener('click', function() {
+  const btn = this;
+
+  // 既に距離取得済みなら再計算して表示（2回目以降も同じ動作）
+  if (userLat && userLng) {
+    showDistanceOnCards(userLat, userLng);
+    btn.classList.add('active');
+    showToast('現在地からの距離を表示しています');
+    return;
+  }
+
+  // 未取得なら位置情報を取得
+  if (!navigator.geolocation) {
+    showToast('このブラウザは位置情報に対応していません');
+    return;
+  }
+
+  btn.classList.add('loading');
+  btn.innerHTML = '取得中...';
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      btn.classList.remove('loading');
+      btn.innerHTML = '📏 距離を表示';
+      btn.classList.add('active');
+
+      // 現在地を保存（地図は移動しない）
+      setUserLocation(pos.coords.latitude, pos.coords.longitude, false);
+
+      // 全カードに距離表示
+      showDistanceOnCards(pos.coords.latitude, pos.coords.longitude);
+      showToast('現在地からの距離を表示しています');
+    },
+    function() {
+      btn.classList.remove('loading');
+      btn.innerHTML = '📏 距離を表示';
+      showToast('現在地が取得できませんでした');
+    },
+    { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
+  );
+});
+
+// 全カードのcard-distanceに距離を表示する関数
+function showDistanceOnCards(lat, lng) {
+  document.querySelectorAll('#list .card-distance[data-lat]').forEach(function(el) {
+    const fLat = parseFloat(el.dataset.lat);
+    const fLng = parseFloat(el.dataset.lng);
+    if (isNaN(fLat) || isNaN(fLng)) return;
+    const dist = Math.round(calcDistance(lat, lng, fLat, fLng) * 10) / 10;
+    el.textContent = '📍 ' + dist + 'km';
+  });
+}
 
 // ────────────────────────────────────────
 // URLパラメータ ?id=xxx による施設ハイライト
