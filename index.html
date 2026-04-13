@@ -1262,15 +1262,15 @@ body.map-expanded #map-close-btn {
 /* 距離表示ボタン（地図右下・現在地ボタンの下） */
 #distanceBtn {
   position: absolute;
-  bottom: 4px;
+  bottom: 28px;
   right: 10px;
   z-index: 1000;
-  background: white;
+  background: rgba(255,255,255,0.75);
   border: none;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-  padding: 8px 12px;
-  font-size: 13px;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+  padding: 6px 10px;
+  font-size: 12px;
   font-weight: bold;
   color: #1c6ea8;
   cursor: pointer;
@@ -1281,7 +1281,7 @@ body.map-expanded #map-close-btn {
   transition: background 0.15s;
 }
 #distanceBtn:active {
-  background: #f0f0f0;
+  background: rgba(255,255,255,0.95);
 }
 #distanceBtn.loading {
   color: #aaa;
