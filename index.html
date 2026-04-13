@@ -1200,6 +1200,23 @@ body.map-expanded #map-close-btn {
   display: block;
 }
 
+/* 共有URL経由の強調カード */
+.shared-highlight-card {
+  border: 2px solid #1c6ea8 !important;
+  box-shadow: 0 0 0 4px rgba(28, 110, 168, 0.25) !important;
+  background: #e8f4fd !important;
+}
+.shared-label {
+  display: inline-block;
+  background: #1c6ea8;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+}
+
 </style>
 </head>
 <body>
@@ -2376,6 +2393,56 @@ document.getElementById('surveyModal').addEventListener('click', function(e) {
 
 // 初期表示
 updateByMapBounds();
+
+// ────────────────────────────────────────
+// URLパラメータ ?id=xxx による施設ハイライト
+// ────────────────────────────────────────
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const targetId = params.get('id');
+  if (!targetId) return;
+
+  // 該当施設を検索
+  const target = facilities.find(f => f.id === targetId);
+  if (!target) return; // 存在しない場合は何もしない（エラーなし）
+
+  // 少し待ってから処理（初期描画完了を待つ）
+  setTimeout(function() {
+    // ① 地図をその施設の座標に移動
+    _suppressMoveend = true;
+    map.setView([target.lat, target.lng], 15);
+
+    // ② _lastSortedFacilities を先頭に該当施設を持ってきて再描画
+    const others = _lastSortedFacilities.filter(f => f.id !== targetId);
+    _lastSortedFacilities = [target, ...others];
+    render(true);
+
+    // ③ 描画後にカードを強調・ラベル付与・スクロール
+    setTimeout(function() {
+      const listEl = document.getElementById('list');
+      const allCards = listEl.querySelectorAll('.card');
+      if (allCards.length === 0) return;
+
+      const firstCard = allCards[0];
+
+      // 強調スタイル付与
+      firstCard.classList.add('shared-highlight-card');
+
+      // 「📩 共有された施設」ラベルをcard-bodyの先頭に挿入
+      const cardBody = firstCard.querySelector('.card-body');
+      if (cardBody && !cardBody.querySelector('.shared-label')) {
+        const label = document.createElement('div');
+        label.className = 'shared-label';
+        label.textContent = '📩 共有された施設';
+        cardBody.insertBefore(label, cardBody.firstChild);
+      }
+
+      // リスト先頭にスクロール
+      firstCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+
+  }, 800);
+})();
 
 // Service Worker を完全無効化（PWA化させない）
 if ('serviceWorker' in navigator) {
