@@ -1350,7 +1350,6 @@ body.map-expanded #map-close-btn {
   <div id="map"></div>
   <button id="map-close-btn">✕</button>
   <div id="mapHint">👆 地図タップで拡大できます</div>
-  <button id="locateBtn">📍 現在地</button>
   <button id="distanceBtn">📏 距離を表示</button>
 </div>
 
@@ -2561,56 +2560,6 @@ document.getElementById('surveyModal').addEventListener('click', function(e) {
 updateByMapBounds();
 
 // ────────────────────────────────────────
-// 現在地ボタン
-// ────────────────────────────────────────
-document.getElementById('locateBtn').addEventListener('click', function() {
-  const btn = this;
-
-  // ?id=xxx モード中なら帯をスライドアップで消去
-  const banner = document.getElementById('list').querySelector('.shared-banner-card');
-  if (banner) dismissBanner(banner);
-
-  // ローディング状態
-  btn.classList.add('loading');
-  btn.innerHTML = '取得中...';
-
-  if (!navigator.geolocation) {
-    // geolocation非対応ブラウザ
-    btn.classList.remove('loading');
-    btn.innerHTML = '📍 現在地';
-    showToast('このブラウザは位置情報に対応していません');
-    updateByMapBounds();
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    function(pos) {
-      // 取得成功
-      btn.classList.remove('loading');
-      btn.innerHTML = '📍 現在地';
-      btn.classList.add('locating');
-      btn.addEventListener('animationend', () => btn.classList.remove('locating'), { once: true });
-
-      setUserLocation(pos.coords.latitude, pos.coords.longitude, true);
-
-      // flyToアニメーション完了後にランキング更新
-      setTimeout(function() {
-        _suppressMoveend = true;
-        updateByMapBounds();
-      }, 900);
-    },
-    function() {
-      // 取得失敗（拒否など）
-      btn.classList.remove('loading');
-      btn.innerHTML = '📍 現在地';
-      showToast('現在地が取得できなかったため、このエリアで表示しています');
-      updateByMapBounds();
-    },
-    { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
-  );
-});
-
-// ────────────────────────────────────────
 // 距離表示ボタン
 // ────────────────────────────────────────
 document.getElementById('distanceBtn').addEventListener('click', function() {
@@ -2726,7 +2675,7 @@ function showDistanceOnCards(lat, lng) {
           </div>
           ${target.address ? `<div class="card-address">📌 ${target.address}</div>` : ''}
           <div class="card-meta">
-            ${_bannerDist ? `<span class="card-distance">📍 ${_bannerDist}</span>` : ''}
+            <span class="card-distance" data-lat="${target.lat}" data-lng="${target.lng}"></span>
           </div>
         </div>
         <div class="card-actions">
