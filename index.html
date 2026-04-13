@@ -1968,7 +1968,7 @@ function updateByMapBounds() {
       return { ...f, _sortScore: totalScore, distance: distKm };
     })
     .sort((a, b) => b._sortScore - a._sortScore)
-    .slice(0, 10)
+    .slice(0, 5)
     .map(({ _sortScore, ...f }) => f);
 
 
@@ -2396,6 +2396,8 @@ updateByMapBounds();
 
 // ────────────────────────────────────────
 // URLパラメータ ?id=xxx による施設ハイライト
+// 仕様：共有施設は別枠帯として最上部に表示。
+//       スコアランキングからは除外し、残り5件を繰り上げ表示。
 // ────────────────────────────────────────
 (function() {
   const params = new URLSearchParams(window.location.search);
@@ -2412,33 +2414,79 @@ updateByMapBounds();
     _suppressMoveend = true;
     map.setView([target.lat, target.lng], 15);
 
-    // ② _lastSortedFacilities を先頭に該当施設を持ってきて再描画
-    const others = _lastSortedFacilities.filter(f => f.id !== targetId);
-    _lastSortedFacilities = [target, ...others];
+    // ② スコアランキングから共有施設を除外して再描画（繰り上げ）
+    _lastSortedFacilities = _lastSortedFacilities.filter(f => f.id !== targetId);
     render(true);
 
-    // ③ 描画後にカードを強調・ラベル付与・スクロール
+    // ③ 描画後に別枠帯をリスト最上部に挿入
     setTimeout(function() {
       const listEl = document.getElementById('list');
-      const allCards = listEl.querySelectorAll('.card');
-      if (allCards.length === 0) return;
 
-      const firstCard = allCards[0];
+      // 既存の帯があれば削除（二重挿入防止）
+      const existing = listEl.querySelector('.shared-banner-card');
+      if (existing) existing.remove();
 
-      // 強調スタイル付与
-      firstCard.classList.add('shared-highlight-card');
+      // 別枠帯カードを生成
+      const banner = document.createElement('div');
+      banner.className = 'card shared-highlight-card shared-banner-card';
+      banner.innerHTML = `
+        <div class="card-body">
+          <div class="shared-label">📩 共有された施設</div>
+          <div class="card-name" style="font-size:15px;font-weight:bold;margin-bottom:4px;">
+            ${target.name}
+          </div>
+          ${target.address ? `<div class="card-address">📌 ${target.address}</div>` : ''}
+          <div class="card-meta">
+            <span class="card-distance">📍 ${target.distance ?? 0}km</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <div class="btn-row">
+            <button class="call-btn top-call" data-phone="${target.phone}" onclick="event.stopPropagation()">
+              <img src="images/call-btn-top.png" class="call-btn-img" alt="今すぐ電話する">
+            </button>
+            <div class="line-group">
+              <button class="line-btn" onclick="event.stopPropagation();sendToLine('${target.name.replace(/'/g,"\\'")}','${target.phone}','${target.items.replace(/'/g,"\\'")}','${target.lat}','${target.lng}')">
+                <img src="images/line-btn.png">
+              </button>
+              <div class="line-sub">LINEで確認</div>
+            </div>
+          </div>
+        </div>
+      `;
 
-      // 「📩 共有された施設」ラベルをcard-bodyの先頭に挿入
-      const cardBody = firstCard.querySelector('.card-body');
-      if (cardBody && !cardBody.querySelector('.shared-label')) {
-        const label = document.createElement('div');
-        label.className = 'shared-label';
-        label.textContent = '📩 共有された施設';
-        cardBody.insertBefore(label, cardBody.firstChild);
+      // 地図移動（バナークリック）
+      banner.addEventListener('click', function(e) {
+        if (e.target.closest('.call-btn') || e.target.closest('.line-btn')) return;
+        _suppressMoveend = true;
+        map.setView([target.lat, target.lng], 15);
+      });
+
+      // 電話ボタンのイベント
+      const callBtn = banner.querySelector('.call-btn');
+      if (callBtn) {
+        callBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          if (isTestMode) {
+            e.preventDefault();
+            localStorage.setItem('surveyJustShown', 'false');
+            setTimeout(() => openSurveyModal(0), 500);
+          } else {
+            const phone = this.dataset.phone;
+            if (phone) window.location.href = 'tel:' + phone;
+            localStorage.setItem('callFlag', 'true');
+            localStorage.setItem('callLeaveTime', Date.now().toString());
+            localStorage.setItem('surveyJustShown', 'false');
+          }
+        });
       }
 
-      // リスト先頭にスクロール
-      firstCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // リスト最上部に挿入
+      listEl.insertBefore(banner, listEl.firstChild);
+
+      // 先頭にスクロール
+      listEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
     }, 100);
 
   }, 800);
