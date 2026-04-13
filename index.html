@@ -2561,7 +2561,8 @@ document.getElementById('locateBtn').addEventListener('click', function() {
     map.setView([target.lat, target.lng], 15);
 
     // ② スコアランキングから共有施設を除外して再描画（繰り上げ）
-    _lastSortedFacilities = _lastSortedFacilities.filter(f => f.id !== targetId);
+    // ※ map.setView後にupdateByMapBoundsが走るので、
+    //   ここではフィルターせず帯挿入のみ行う
     render(true);
 
     // ③ 描画後に別枠帯をリスト最上部に挿入
@@ -2571,6 +2572,14 @@ document.getElementById('locateBtn').addEventListener('click', function() {
       // 既存の帯があれば削除（二重挿入防止）
       const existing = listEl.querySelector('.shared-banner-card');
       if (existing) existing.remove();
+
+      // ランキングから共有施設カードを非表示（DOMから削除）
+      listEl.querySelectorAll('.card').forEach(card => {
+        const nameEl = card.querySelector('.card-name');
+        if (nameEl && nameEl.textContent.includes(target.name)) {
+          card.remove();
+        }
+      });
 
       // 別枠帯カードを生成
       const banner = document.createElement('div');
