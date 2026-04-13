@@ -1625,10 +1625,13 @@ const priceMap = {
   high:   { label: "", cls: "price-high"   }
 };
 
-// 地図初期化（前回現在地 or 大阪付近）
-const _savedLat = parseFloat(localStorage.getItem('lastLat')) || 34.6937;
-const _savedLng = parseFloat(localStorage.getItem('lastLng')) || 135.5023;
-const map = L.map('map').setView([_savedLat, _savedLng], 12);
+// 地図初期化（?id=xxx なら該当施設座標 / 前回現在地 / 大阪付近）
+const _urlId = new URLSearchParams(window.location.search).get('id');
+const _urlFacility = _urlId ? (typeof facilities !== 'undefined' ? facilities.find(f => f.id === _urlId) : null) : null;
+const _savedLat = _urlFacility ? _urlFacility.lat : (parseFloat(localStorage.getItem('lastLat')) || 34.6937);
+const _savedLng = _urlFacility ? _urlFacility.lng : (parseFloat(localStorage.getItem('lastLng')) || 135.5023);
+const _savedZoom = _urlFacility ? 15 : 12;
+const map = L.map('map').setView([_savedLat, _savedLng], _savedZoom);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
@@ -2111,12 +2114,13 @@ document.getElementById('map-close-btn').addEventListener('click', (e) => {
 // 地図移動終了トリガー（moveend = 指を離した瞬間）
 // プログラム側からの移動（setView・fitBounds）は無視する
 
-// 帯解除用：ドラッグ開始地点を記録
-let _dragStartPoint = null;
+// 帯解除用：ドラッグ開始・終了地点を記録
+let _dragStartLatLng = null;
 
-map.on('mousedown touchstart', function(e) {
-  const point = e.containerPoint || (e.touches && e.touches[0] && map.mouseEventToContainerPoint(e.originalEvent.touches[0]));
-  if (point) _dragStartPoint = point;
+map.on('movestart', function() {
+  if (!_suppressMoveend) {
+    _dragStartLatLng = map.getCenter();
+  }
 });
 
 map.on('moveend', () => {
@@ -2127,17 +2131,17 @@ map.on('moveend', () => {
 
   // 帯が表示中かチェック
   const banner = document.getElementById('list').querySelector('.shared-banner-card');
-  if (banner && _dragStartPoint) {
-    // ドラッグ距離を計算（ピクセル）
-    const center = map.getSize().divideBy(2);
-    const dx = center.x - _dragStartPoint.x;
-    const dy = center.y - _dragStartPoint.y;
+  if (banner && _dragStartLatLng) {
+    // 地理座標をピクセルに変換して距離計算
+    const startPx = map.latLngToContainerPoint(_dragStartLatLng);
+    const endPx = map.latLngToContainerPoint(map.getCenter());
+    const dx = endPx.x - startPx.x;
+    const dy = endPx.y - startPx.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     if (dist >= 100) {
-      // 100px以上ドラッグ → 帯をスライドアップで消去
       dismissBanner(banner);
-      return; // updateByMapBoundsはdismissBanner内で呼ぶ
+      return;
     } else {
       // 100px未満 → 帯を維持・ランキング更新しない
       return;
