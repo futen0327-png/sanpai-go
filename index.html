@@ -1217,6 +1217,43 @@ body.map-expanded #map-close-btn {
   margin-bottom: 6px;
 }
 
+/* 現在地ボタン（地図右下） */
+#locateBtn {
+  position: absolute;
+  bottom: 36px;
+  right: 10px;
+  z-index: 1000;
+  background: white;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #1c6ea8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s;
+}
+#locateBtn:active {
+  background: #f0f0f0;
+}
+#locateBtn.loading {
+  color: #aaa;
+  pointer-events: none;
+}
+@keyframes locatePulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+#locateBtn.locating {
+  animation: locatePulse 0.6s ease 2;
+}
+
 </style>
 </head>
 <body>
@@ -1253,6 +1290,7 @@ body.map-expanded #map-close-btn {
   <div id="map"></div>
   <button id="map-close-btn">✕</button>
   <div id="mapHint">👆 地図タップで拡大できます</div>
+  <button id="locateBtn">📍 現在地</button>
 </div>
 
 <!-- 一覧 -->
@@ -1594,18 +1632,15 @@ let userMarker = null;
 let userLat = null;
 let userLng = null;
 
-function setUserLocation(lat, lng) {
-  // 初回のみ保存（地図を動かしても更新しない）
-  if (userLat === null && userLng === null) {
-    userLat = lat;
-    userLng = lng;
-  }
+function setUserLocation(lat, lng, flyTo = false) {
+  userLat = lat;
+  userLng = lng;
 
-  // 現在地をlocalStorageに保存（次回起動時の初期座標に使用）
+  // 現在地をlocalStorageに保存
   localStorage.setItem('lastLat', lat);
   localStorage.setItem('lastLng', lng);
 
-
+  // 現在地ピンを更新
   if (userMarker) map.removeLayer(userMarker);
   userMarker = L.circleMarker([lat, lng], {
     radius: 8,
@@ -1613,16 +1648,13 @@ function setUserLocation(lat, lng) {
     fillColor: '#2196f3',
     fillOpacity: 1
   }).addTo(map).bindPopup('現在地');
-  map.setView([lat, lng], 12);
+
+  // flyTo=true のときだけ地図移動（ボタン押下時のみ）
+  if (flyTo) {
+    map.flyTo([lat, lng], 13, { duration: 0.8 });
+  }
 }
 
-if (navigator.geolocation) {
-  navigator.geolocation.getCurrentPosition(
-    (pos) => setUserLocation(pos.coords.latitude, pos.coords.longitude),
-    () => {},
-    { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
-  );
-}
 
 // アクティブマーカー管理
 let activeMarkers = [];
@@ -2393,6 +2425,56 @@ document.getElementById('surveyModal').addEventListener('click', function(e) {
 
 // 初期表示
 updateByMapBounds();
+
+// ────────────────────────────────────────
+// 現在地ボタン
+// ────────────────────────────────────────
+document.getElementById('locateBtn').addEventListener('click', function() {
+  const btn = this;
+
+  // ?id=xxx モード中なら帯を消して通常モードへ
+  const banner = document.getElementById('list').querySelector('.shared-banner-card');
+  if (banner) banner.remove();
+
+  // ローディング状態
+  btn.classList.add('loading');
+  btn.textContent = '取得中...';
+
+  if (!navigator.geolocation) {
+    // geolocation非対応ブラウザ
+    btn.classList.remove('loading');
+    btn.innerHTML = '📍 現在地';
+    showToast('このブラウザは位置情報に対応していません');
+    updateByMapBounds();
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      // 取得成功
+      btn.classList.remove('loading');
+      btn.innerHTML = '📍 現在地';
+      btn.classList.add('locating');
+      btn.addEventListener('animationend', () => btn.classList.remove('locating'), { once: true });
+
+      setUserLocation(pos.coords.latitude, pos.coords.longitude, true);
+
+      // 地図移動完了後にランキング更新
+      setTimeout(function() {
+        _suppressMoveend = true;
+        updateByMapBounds();
+      }, 900);
+    },
+    function() {
+      // 取得失敗（拒否など）
+      btn.classList.remove('loading');
+      btn.innerHTML = '📍 現在地';
+      showToast('現在地が取得できなかったため、このエリアで表示しています');
+      updateByMapBounds();
+    },
+    { enableHighAccuracy: false, timeout: 8000, maximumAge: 60000 }
+  );
+});
 
 // ────────────────────────────────────────
 // URLパラメータ ?id=xxx による施設ハイライト
